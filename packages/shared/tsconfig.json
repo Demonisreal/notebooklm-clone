@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"target": "ES2023",
+		"lib": ["ES2023"],
+		"moduleResolution": "node",
+		"outDir": "./dist",
+		"rootDir": "./src",
+		"strict": true,
+		"declaration": true,
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true
+	},
+	"include": ["src/**/*"]
+}
