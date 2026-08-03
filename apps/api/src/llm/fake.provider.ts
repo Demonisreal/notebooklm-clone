@@ -1,10 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-	CompletionOptions,
-	EMBEDDING_DIMENSIONS,
-	LlmProvider,
-	normalize
-} from './llm.provider';
+import { CompletionOptions, EMBEDDING_DIMENSIONS, LlmProvider, normalize } from './llm.provider';
 
 function hash(text: string): number {
 	let h = 2166136261;
@@ -66,6 +61,9 @@ function buildAnswer(blocks: number): string {
 	}
 
 	// [99] ist absicht: der zitat-parser muss halluzinierte nummern verwerfen
-	const cited = blocks >= 2 ? 'Laut den Quellen gilt das [1] und ergänzend auch das [2].' : 'Laut der Quelle gilt das [1].';
+	const cited =
+		blocks >= 2
+			? 'Laut den Quellen gilt das [1] und ergänzend auch das [2].'
+			: 'Laut der Quelle gilt das [1].';
 	return `${cited} Ein weiterer Punkt lässt sich so nicht belegen [99].`;
 }

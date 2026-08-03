@@ -1,12 +1,7 @@
 import { ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Bottleneck from 'bottleneck';
-import {
-	CompletionOptions,
-	EMBEDDING_DIMENSIONS,
-	LlmProvider,
-	normalize
-} from './llm.provider';
+import { CompletionOptions, EMBEDDING_DIMENSIONS, LlmProvider, normalize } from './llm.provider';
 
 const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
 
@@ -64,9 +59,7 @@ export class GeminiProvider implements LlmProvider {
 				signal: options?.signal,
 				body: JSON.stringify({
 					contents: [{ role: 'user', parts: [{ text: prompt }] }],
-					systemInstruction: options?.system
-						? { parts: [{ text: options.system }] }
-						: undefined,
+					systemInstruction: options?.system ? { parts: [{ text: options.system }] } : undefined,
 					generationConfig: { temperature: options?.temperature ?? 0.2 }
 				})
 			}
