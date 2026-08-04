@@ -5,8 +5,11 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtGuard } from './auth/jwt.guard';
 import { loadConfig } from './config';
 import { LlmModule } from './llm/llm.module';
+import { ChatModule } from './chat/chat.module';
 import { NotebooksModule } from './notebooks/notebooks.module';
+import { NotesModule } from './notes/notes.module';
 import { SourcesModule } from './sources/sources.module';
+import { StudioModule } from './studio/studio.module';
 import { SupabaseModule } from './supabase/supabase.module';
 
 @Module({
@@ -20,7 +23,10 @@ import { SupabaseModule } from './supabase/supabase.module';
 		SupabaseModule,
 		LlmModule,
 		NotebooksModule,
-		SourcesModule
+		SourcesModule,
+		ChatModule,
+		NotesModule,
+		StudioModule
 	],
 	providers: [{ provide: APP_GUARD, useClass: JwtGuard }]
 })

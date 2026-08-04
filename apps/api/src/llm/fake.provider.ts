@@ -40,8 +40,9 @@ export class FakeProvider implements LlmProvider {
 	}
 
 	async *stream(prompt: string, options?: CompletionOptions): AsyncIterable<string> {
-		const blocks = countContextBlocks(prompt);
-		const answer = buildAnswer(blocks);
+		const answer = looksLikeJsonRequest(prompt)
+			? FAKE_TREE
+			: buildAnswer(countContextBlocks(prompt));
 
 		for (const word of answer.split(' ')) {
 			if (options?.signal?.aborted) return;
@@ -54,6 +55,19 @@ export class FakeProvider implements LlmProvider {
 function countContextBlocks(prompt: string): number {
 	return prompt.match(/^\[\d+\]/gm)?.length ?? 0;
 }
+
+// die studio-ausgaben sollen ohne api-key entwickelbar bleiben
+function looksLikeJsonRequest(prompt: string): boolean {
+	return prompt.includes('als JSON');
+}
+
+const FAKE_TREE = JSON.stringify({
+	label: 'Beispiel-Notizbuch',
+	children: [
+		{ label: 'Fristen', children: [{ label: 'Vier Wochen zum Monatsende' }] },
+		{ label: 'Garantie', children: [{ label: '24 Monate ab Lieferung' }] }
+	]
+});
 
 function buildAnswer(blocks: number): string {
 	if (blocks === 0) {
