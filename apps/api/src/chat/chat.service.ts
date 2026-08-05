@@ -54,7 +54,7 @@ export class ChatService {
 		if (signal.aborted) return;
 
 		const { text, citations } = resolveCitations(raw, blocks);
-		yield { type: 'citations', items: citations };
+		yield { type: 'citations', text, items: citations };
 
 		await this.saveMessage(db, conversationId, 'assistant', text, citations);
 		yield { type: 'done' };
