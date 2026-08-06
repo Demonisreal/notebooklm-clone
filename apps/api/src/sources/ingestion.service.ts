@@ -97,9 +97,13 @@ export class IngestionService implements OnApplicationBootstrap {
 			return fetchArticle(source.source_url);
 		}
 
+		// txt und md kommen entweder als eingefuegter text oder als datei-upload
 		if (source.kind === 'text' || source.kind === 'markdown') {
-			const raw = source.metadata?.rawText ?? '';
-			if (!raw.trim()) throw new UnsupportedSourceError('Der Text ist leer.');
+			const raw = source.storage_path
+				? (await this.download(db, source)).toString('utf8')
+				: (source.metadata?.rawText ?? '');
+
+			if (!raw.trim()) throw new UnsupportedSourceError('Die Quelle enthält keinen Text.');
 			return { text: raw, pageStarts: [] };
 		}
 
