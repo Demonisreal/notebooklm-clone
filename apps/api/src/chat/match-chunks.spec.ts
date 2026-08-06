@@ -6,12 +6,8 @@ const URL = process.env.SUPABASE_URL ?? 'http://127.0.0.1:54321';
 const KEY = process.env.SUPABASE_SECRET_KEY ?? '';
 
 // die suche lebt in der datenbank, also wird sie auch dort geprueft.
-// ohne laufendes supabase ueberspringen statt rot zu werden
-const reachable = await fetch(`${URL}/rest/v1/`, { headers: { apikey: KEY } })
-	.then((r) => r.ok || r.status === 404)
-	.catch(() => false);
-
-describe.skipIf(!reachable || !KEY)('match_chunks', () => {
+// ohne konfiguriertes supabase ueberspringen statt rot zu werden
+describe.skipIf(!KEY)('match_chunks', () => {
 	const db: SupabaseClient = createClient(URL, KEY, { auth: { persistSession: false } });
 	const llm = new FakeProvider();
 
