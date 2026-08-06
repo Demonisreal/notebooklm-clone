@@ -11,6 +11,8 @@ export default function NotebooksPage() {
 	const [notebooks, setNotebooks] = useState<Notebook[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [creating, setCreating] = useState(false);
+	// zweistufig statt confirm(), damit kein browser-dialog den ablauf blockiert
+	const [confirming, setConfirming] = useState<string | null>(null);
 
 	const load = useCallback(async () => {
 		try {
@@ -40,6 +42,16 @@ export default function NotebooksPage() {
 			setError(err instanceof Error ? err.message : 'Anlegen fehlgeschlagen');
 		} finally {
 			setCreating(false);
+		}
+	}
+
+	async function remove(id: string) {
+		setConfirming(null);
+		try {
+			await api(`/notebooks/${id}`, { method: 'DELETE' });
+			await load();
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Löschen fehlgeschlagen');
 		}
 	}
 
@@ -86,17 +98,43 @@ export default function NotebooksPage() {
 
 			<ul className="mt-8 grid gap-3 sm:grid-cols-2">
 				{notebooks?.map((notebook) => (
-					<li key={notebook.id}>
+					<li key={notebook.id} className="group relative">
 						<a
 							href={`/notebooks/${notebook.id}`}
 							className="block rounded-lg border border-[var(--color-line)] bg-[var(--color-panel)] p-4 hover:border-[var(--color-accent)]"
 						>
 							<span className="text-2xl">{notebook.emoji}</span>
-							<p className="mt-2 font-medium">{notebook.title}</p>
+							<p className="mt-2 pr-16 font-medium">{notebook.title}</p>
 							<p className="mt-1 text-xs text-[var(--color-muted)]">
 								{new Date(notebook.updatedAt).toLocaleDateString('de-DE')}
 							</p>
 						</a>
+
+						<div className="absolute right-3 top-3 flex gap-2">
+							{confirming === notebook.id ? (
+								<>
+									<button
+										onClick={() => remove(notebook.id)}
+										className="rounded bg-red-500 px-2 py-1 text-xs text-white"
+									>
+										wirklich löschen
+									</button>
+									<button
+										onClick={() => setConfirming(null)}
+										className="text-xs text-[var(--color-muted)] hover:underline"
+									>
+										abbrechen
+									</button>
+								</>
+							) : (
+								<button
+									onClick={() => setConfirming(notebook.id)}
+									className="text-xs text-[var(--color-muted)] opacity-0 hover:text-red-500 group-hover:opacity-100"
+								>
+									löschen
+								</button>
+							)}
+						</div>
 					</li>
 				))}
 			</ul>
