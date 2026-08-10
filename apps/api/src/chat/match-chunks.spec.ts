@@ -8,7 +8,9 @@ const KEY = process.env.SUPABASE_SECRET_KEY ?? '';
 // die suche lebt in der datenbank, also wird sie auch dort geprueft.
 // ohne konfiguriertes supabase ueberspringen statt rot zu werden
 describe.skipIf(!KEY)('match_chunks', () => {
-	const db: SupabaseClient = createClient(URL, KEY, { auth: { persistSession: false } });
+	// skipIf ueberspringt nur die tests, der rumpf laeuft trotzdem - ohne key
+	// wuerde createClient hier die ganze datei beim einsammeln umwerfen
+	let db: SupabaseClient;
 	const llm = new FakeProvider();
 
 	const userId = '9ce97ae9-307f-4989-a4e6-8df3e8022e4d';
@@ -30,6 +32,7 @@ describe.skipIf(!KEY)('match_chunks', () => {
 	}
 
 	beforeAll(async () => {
+		db = createClient(URL, KEY, { auth: { persistSession: false } });
 		await db.from('notebooks').delete().eq('id', notebookId);
 		await db.from('notebooks').insert({ id: notebookId, user_id: userId, title: 'RRF-Test' });
 		await db.from('sources').insert([
