@@ -1,0 +1,60 @@
+name: notebooklm
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN}
+      API_DOMAIN: ${API_DOMAIN}
+      DB_DOMAIN: ${DB_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    networks: [notebooklm, supabase_default]
+
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+      WEB_ORIGIN: https://${APP_DOMAIN}
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_PUBLIC_URL: https://${DB_DOMAIN}
+      SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_ANON_KEY}
+      SUPABASE_SECRET_KEY: ${SUPABASE_SERVICE_KEY}
+      SUPABASE_JWT_ISSUER: ${SUPABASE_JWT_ISSUER:-https://${DB_DOMAIN}}
+      LLM_PROVIDER: ${LLM_PROVIDER:-gemini}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_CHAT_MODEL: ${GEMINI_CHAT_MODEL:-gemini-3.5-flash}
+      GEMINI_EMBEDDING_MODEL: ${GEMINI_EMBEDDING_MODEL:-gemini-embedding-2}
+      GEMINI_TTS_MODEL: ${GEMINI_TTS_MODEL:-gemini-2.5-flash-preview-tts}
+    networks: [notebooklm, supabase_default]
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: https://${DB_DOMAIN}
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_API_URL: https://${API_DOMAIN}
+    restart: unless-stopped
+    networks: [notebooklm]
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  notebooklm:
+  # supabase bringt sein eigenes compose mit, wir haengen uns an dessen netz
+  supabase_default:
+    external: true
