@@ -1,29 +1,73 @@
 @import 'tailwindcss';
 
 @theme {
-	--color-bg: #ffffff;
-	--color-fg: #0b0b0c;
-	--color-muted: #6b7280;
-	--color-line: #e5e7eb;
-	--color-panel: #fafafa;
-	--color-accent: #2563eb;
+	/* warme, papierartige neutrale statt kaltem grau - passt zu einem notizbuch */
+	--color-bg: #fbfaf8;
+	--color-surface: #ffffff;
+	--color-panel: #f6f4f1;
+	--color-line: #e7e2db;
+	--color-line-strong: #d6cfc5;
+	--color-fg: #1c1917;
+	--color-muted: #78716c;
+	--color-faint: #a8a29e;
+
+	--color-accent: #1d4ed8;
+	--color-accent-hover: #1e40af;
+	--color-accent-soft: #eef2ff;
+	--color-accent-fg: #ffffff;
+
+	--color-mark: #fde68a;
+	--color-ok: #15803d;
+	--color-ok-soft: #dcfce7;
+	--color-warn: #b45309;
+	--color-warn-soft: #fef3c7;
+	--color-bad: #b91c1c;
+	--color-bad-soft: #fee2e2;
+
+	--shadow-card: 0 1px 2px rgb(28 25 23 / 0.04), 0 2px 8px rgb(28 25 23 / 0.05);
+	--shadow-lift: 0 2px 4px rgb(28 25 23 / 0.05), 0 12px 28px rgb(28 25 23 / 0.09);
+	--shadow-pop: 0 8px 32px rgb(28 25 23 / 0.12);
+
+	--radius-panel: 14px;
+
+	--ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (prefers-color-scheme: dark) {
 	@theme {
-		--color-bg: #0b0b0c;
-		--color-fg: #f4f4f5;
-		--color-muted: #9ca3af;
-		--color-line: #26262a;
-		--color-panel: #131316;
-		--color-accent: #60a5fa;
+		--color-bg: #0e0e10;
+		--color-surface: #17171a;
+		--color-panel: #1b1b1f;
+		--color-line: #2a2a30;
+		--color-line-strong: #3a3a42;
+		--color-fg: #f4f4f2;
+		--color-muted: #9d9d98;
+		--color-faint: #6e6e69;
+
+		--color-accent: #7ea2ff;
+		--color-accent-hover: #9db8ff;
+		--color-accent-soft: #1b2340;
+		--color-accent-fg: #0e0e10;
+
+		--color-mark: #b8860b;
+		--color-ok: #4ade80;
+		--color-ok-soft: #142a1c;
+		--color-warn: #fbbf24;
+		--color-warn-soft: #2c2210;
+		--color-bad: #f87171;
+		--color-bad-soft: #2d1616;
+
+		--shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
+		--shadow-lift: 0 2px 4px rgb(0 0 0 / 0.4), 0 12px 28px rgb(0 0 0 / 0.45);
+		--shadow-pop: 0 8px 32px rgb(0 0 0 / 0.55);
 	}
 }
 
-html,
-body {
+html {
 	background: var(--color-bg);
 	color: var(--color-fg);
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
 }
 
 body {
@@ -36,4 +80,92 @@ body {
 		'Helvetica Neue',
 		Arial,
 		sans-serif;
+	font-size: 15px;
+	line-height: 1.6;
+	letter-spacing: -0.006em;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.02em;
+	line-height: 1.25;
+}
+
+::selection {
+	background: var(--color-accent-soft);
+	color: var(--color-fg);
+}
+
+/* schmale, unaufdringliche scrollbalken - der graue standardbalken zerstoert die ruhe */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--color-line-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+	width: 9px;
+	height: 9px;
+}
+
+*::-webkit-scrollbar-thumb {
+	background: var(--color-line-strong);
+	border: 3px solid transparent;
+	background-clip: content-box;
+	border-radius: 9999px;
+}
+
+*::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+input,
+textarea,
+button {
+	font: inherit;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+	outline: 2px solid var(--color-accent);
+	outline-offset: 2px;
+}
+
+@keyframes rise {
+	from {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes fade {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.animate-rise {
+	animation: rise 0.32s var(--ease-out) both;
+}
+
+.animate-fade {
+	animation: fade 0.24s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		transition-duration: 0.01ms !important;
+	}
 }
