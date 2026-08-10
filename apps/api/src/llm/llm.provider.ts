@@ -8,10 +8,18 @@ export type CompletionOptions = {
 	signal?: AbortSignal;
 };
 
+export type Speaker = { name: string; voice: string };
+
+export type SpokenAudio = {
+	pcm: Buffer;
+	sampleRate: number;
+};
+
 export interface LlmProvider {
 	embed(texts: string[]): Promise<number[][]>;
 	complete(prompt: string, options?: CompletionOptions): Promise<string>;
 	stream(prompt: string, options?: CompletionOptions): AsyncIterable<string>;
+	speak(dialogue: string, speakers: Speaker[]): Promise<SpokenAudio>;
 }
 
 // cosine braucht laenge 1, nicht jedes modell liefert die
