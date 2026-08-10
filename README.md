@@ -105,7 +105,26 @@ cp apps/web/.env.example apps/web/.env.local
 pnpm dev                      # API auf :3001, Web auf :3000
 ```
 
-Ohne API-Schlüssel läuft alles mit `LLM_PROVIDER=fake`: Der Fake-Anbieter erzeugt aus einem Hash des Textes reproduzierbare, normalisierte Vektoren. Gleicher Text ergibt immer denselben Vektor, ähnlicher Text aber _keine_ ähnlichen — die Suche ist damit nicht semantisch, aber die gesamte Kette von Chunking über Retrieval bis zum Beleg-Rücksprung ist entwickelbar und testbar. Für echte Antworten `LLM_PROVIDER=gemini` setzen und einen Schlüssel hinterlegen.
+### Auf echte Modelle umstellen
+
+Schlüssel unter [aistudio.google.com](https://aistudio.google.com) anlegen (kostenlos, keine Kreditkarte), dann in `apps/api/.env`:
+
+```bash
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=AIza…
+```
+
+Danach die API neu starten und **die vorhandenen Quellen neu einbetten**:
+
+```bash
+pnpm reembed
+```
+
+Das ist kein optionaler Schritt: Vektoren aus einem anderen Modell liegen in einem anderen Raum. Ohne diesen Lauf blieben die alten Vektoren stehen, die Suche würde weiter Unsinn finden — nur dass die Antworten jetzt echt klingen.
+
+### Ohne Schlüssel arbeiten
+
+Mit `LLM_PROVIDER=fake` läuft alles ohne API-Zugang: Der Fake-Anbieter erzeugt aus einem Hash des Textes reproduzierbare, normalisierte Vektoren. Gleicher Text ergibt immer denselben Vektor, ähnlicher Text aber _keine_ ähnlichen — die Suche ist damit nicht semantisch, aber die gesamte Kette von Chunking über Retrieval bis zum Beleg-Rücksprung ist entwickelbar und testbar. Für echte Antworten `LLM_PROVIDER=gemini` setzen und einen Schlüssel hinterlegen.
 
 ## Tests
 
