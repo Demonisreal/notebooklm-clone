@@ -66,11 +66,18 @@ Ein leeres Array ist nicht `NULL`: `'x' = any(array[]::uuid[])` ergibt `false`. 
 
 `websearch_to_tsquery` verknüpft mit **UND**. „Was ist die Kündigungsfrist und wie lange läuft die Garantie?" wird zu `'kuendigungsfrist' & 'garanti'` und findet null Zeilen, obwohl beide Begriffe einzeln vorkommen — die hybride Suche wäre damit heimlich eine reine Vektorsuche gewesen. Die Lexeme werden jetzt mit ODER verknüpft, sortiert wird über `ts_rank_cd` und anschließend RRF.
 
-### 2. 768 Dimensionen, selbst normalisiert
+### 2. 768 Dimensionen, mit eigener Normalisierung
 
-Die HNSW-Indizes von pgvector arbeiten bis maximal 2000 Dimensionen, `gemini-embedding-2` liefert standardmäßig 3072. Also 768 über `outputDimensionality`.
+Die HNSW-Indizes von pgvector arbeiten bis maximal 2000 Dimensionen, die Embedding-Modelle liefern standardmäßig 3072. Also 768 über `outputDimensionality`.
 
-Entscheidend dabei: Nur bei den vollen 3072 Dimensionen sind die Vektoren vorab normalisiert. Bei jeder kleineren Dimension muss man selbst normalisieren, sonst rechnet die Kosinus-Ähnlichkeit still falsch — die Suche funktioniert scheinbar, liefert aber schlechtere Treffer.
+Zur Normalisierung kursiert die Regel, unterhalb von 3072 Dimensionen müsse man selbst normalisieren. Ich habe das gegen die API gemessen statt es zu glauben:
+
+| Modell | 768 Dimensionen | 3072 Dimensionen |
+|---|---|---|
+| `gemini-embedding-001` | Länge **0,589** | Länge 1,0 |
+| `gemini-embedding-2` | Länge 1,0 | Länge 1,0 |
+
+Für das ältere Modell stimmt die Regel also, für das eingesetzte nicht mehr. Der Code normalisiert trotzdem: Bei einem bereits normalisierten Vektor ist das eine Division durch 1 und kostet nichts, aber ein späterer Modellwechsel würde die Kosinus-Ähnlichkeit sonst still verfälschen — die Suche liefe weiter, nur mit schlechteren Treffern.
 
 ### 3. Row Level Security mit User-Token statt Service-Role
 

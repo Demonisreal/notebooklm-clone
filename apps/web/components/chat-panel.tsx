@@ -284,7 +284,6 @@ function Bubble({
 	);
 }
 
-// belege als klickbare chips rendern, alles andere bleibt text
 function renderWithChips(content: string, citations: Citation[], onCite: (c: Citation) => void) {
 	return content.split(/(\[\d+\])/g).map((part, i) => {
 		const match = /^\[(\d+)\]$/.exec(part);

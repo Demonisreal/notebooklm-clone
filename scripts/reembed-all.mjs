@@ -1,5 +1,4 @@
-// nach einem wechsel des llm-anbieters sind die alten vektoren wertlos:
-// sie stammen aus einem anderen modell und liegen in einem anderen raum
+// vektoren aus einem anderen modell liegen in einem anderen raum
 import { createClient } from '@supabase/supabase-js';
 
 const SUPA = process.env.SUPABASE_URL ?? 'http://127.0.0.1:54321';

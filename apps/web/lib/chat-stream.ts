@@ -30,9 +30,7 @@ export async function* streamChat(
 			if (!line.startsWith('data: ')) continue;
 			try {
 				yield JSON.parse(line.slice(6)) as ChatStreamEvent;
-			} catch {
-				// unvollstaendiges json ueberspringen
-			}
+			} catch {}
 		}
 	}
 }
