@@ -8,7 +8,7 @@ Quellen hochladen, mit ihnen chatten, und jede Aussage über einen Beleg zurück
 
 |        |                                     |
 | ------ | ----------------------------------- |
-| Live   | _wird beim Deployment ergänzt_      |
+| Live   | https://notebook.dmn-software.com   |
 | Zugang | `demo@notebook.local` / `demo12345` |
 
 Der Demo-Zugang hat ein vorbereitetes Notizbuch mit verarbeiteten Quellen, damit sofort etwas zu sehen ist.

@@ -138,7 +138,7 @@ export class AudioService {
 				.forUser(user.token)
 				.storage.from('audio')
 				.createSignedUrl(row.storage_path, URL_TTL_SECONDS);
-			url = data?.signedUrl ?? null;
+			url = data?.signedUrl ? this.supabase.toPublicUrl(data.signedUrl) : null;
 		}
 
 		return {
