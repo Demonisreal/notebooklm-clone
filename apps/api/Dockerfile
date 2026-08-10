@@ -6,14 +6,19 @@ RUN corepack enable pnpm
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY packages/shared/package.json packages/shared/
 COPY apps/api/package.json apps/api/
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY packages/shared packages/shared
 COPY apps/api apps/api
 RUN pnpm --filter shared build && pnpm --filter api build
 
 # das deploy-target zieht nur die produktiv-abhaengigkeiten in einen flachen baum
-RUN pnpm --filter api deploy --prod /app
+RUN pnpm --filter api deploy --prod --legacy /app
+
+# workspace-pakete landen dabei als symlink auf die build-stage, die es spaeter nicht gibt
+RUN rm -rf /app/node_modules/shared && \
+	mkdir -p /app/node_modules/shared && \
+	cp -r packages/shared/dist packages/shared/package.json /app/node_modules/shared/
 
 FROM node:24-slim
 WORKDIR /app
