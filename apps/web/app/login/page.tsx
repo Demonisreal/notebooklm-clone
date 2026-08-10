@@ -32,61 +32,155 @@ export default function LoginPage() {
 	}
 
 	return (
-		<main className="flex min-h-screen items-center justify-center px-4">
-			<form onSubmit={submit} className="w-full max-w-sm">
-				<h1 className="text-2xl font-semibold">Notizbuch</h1>
-				<p className="mt-1 text-sm text-[var(--color-muted)]">
-					Quellen hochladen, mit ihnen chatten, Antworten zurückverfolgen.
-				</p>
+		<main className="grid min-h-screen lg:grid-cols-[1fr_minmax(0,520px)]">
+			<section className="relative hidden overflow-hidden border-r border-[var(--color-line)] bg-[var(--color-panel)] lg:block">
+				{/* dezenter lichtschein, damit die flaeche nicht tot wirkt */}
+				<div
+					aria-hidden
+					className="pointer-events-none absolute -left-32 -top-40 h-[560px] w-[560px] rounded-full opacity-60 blur-3xl"
+					style={{
+						background:
+							'radial-gradient(circle, color-mix(in oklab, var(--color-accent) 22%, transparent), transparent 70%)'
+					}}
+				/>
 
-				<label className="mt-8 block text-sm font-medium">
-					E-Mail
-					<input
-						type="email"
-						required
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-						className="mt-1 w-full rounded-md border border-[var(--color-line)] bg-transparent px-3 py-2 outline-none focus:border-[var(--color-accent)]"
-					/>
-				</label>
+				<div className="relative flex h-full flex-col justify-between p-14">
+					<span className="text-sm font-medium tracking-wide text-[var(--color-muted)]">
+						Notizbuch
+					</span>
 
-				<label className="mt-4 block text-sm font-medium">
-					Passwort
-					<input
-						type="password"
-						required
-						minLength={6}
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-						className="mt-1 w-full rounded-md border border-[var(--color-line)] bg-transparent px-3 py-2 outline-none focus:border-[var(--color-accent)]"
-					/>
-				</label>
+					<div className="max-w-md">
+						<h2 className="text-balance text-4xl font-semibold">
+							Antworten, die zurück in die Quelle führen.
+						</h2>
+						<p className="mt-5 leading-relaxed text-[var(--color-muted)]">
+							Lade Dokumente hoch und stelle Fragen dazu. Jede Aussage bekommt einen Beleg — ein
+							Klick darauf öffnet die Stelle, aus der sie stammt.
+						</p>
 
-				{error && <p className="mt-4 text-sm text-red-500">{error}</p>}
+						<ul className="mt-10 space-y-3">
+							{[
+								'PDF, Word, Text und Webseiten',
+								'Antworten nur aus deinen Quellen',
+								'Belege mit Sprung an die Fundstelle'
+							].map((line) => (
+								<li key={line} className="flex items-center gap-3 text-sm">
+									<span className="grid h-5 w-5 place-items-center rounded-full bg-[var(--color-accent-soft)] text-[11px] text-[var(--color-accent)]">
+										✓
+									</span>
+									{line}
+								</li>
+							))}
+						</ul>
+					</div>
 
-				<button
-					type="submit"
-					disabled={busy}
-					className="mt-6 w-full rounded-md bg-[var(--color-accent)] px-4 py-2 font-medium text-white disabled:opacity-50"
-				>
-					{busy ? 'Einen Moment…' : mode === 'login' ? 'Anmelden' : 'Konto anlegen'}
-				</button>
+					<p className="text-xs text-[var(--color-faint)]">
+						Next.js · Nest.js · Supabase mit pgvector
+					</p>
+				</div>
+			</section>
 
-				<button
-					type="button"
-					onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-					className="mt-4 w-full text-sm text-[var(--color-muted)] hover:underline"
-				>
-					{mode === 'login' ? 'Noch kein Konto? Registrieren' : 'Schon registriert? Anmelden'}
-				</button>
-			</form>
+			<section className="flex items-center justify-center px-6 py-16">
+				<form onSubmit={submit} className="animate-rise w-full max-w-sm">
+					<h1 className="text-2xl font-semibold">
+						{mode === 'login' ? 'Willkommen zurück' : 'Konto anlegen'}
+					</h1>
+					<p className="mt-2 text-sm text-[var(--color-muted)]">
+						{mode === 'login'
+							? 'Melde dich an, um zu deinen Notizbüchern zu gelangen.'
+							: 'Ein paar Sekunden, dann kann es losgehen.'}
+					</p>
+
+					<div className="mt-8 space-y-4">
+						<Field
+							label="E-Mail"
+							type="email"
+							value={email}
+							onChange={setEmail}
+							placeholder="name@beispiel.de"
+						/>
+						<Field
+							label="Passwort"
+							type="password"
+							value={password}
+							onChange={setPassword}
+							placeholder="mindestens 6 Zeichen"
+							minLength={6}
+						/>
+					</div>
+
+					{error && (
+						<p className="animate-fade mt-4 rounded-lg bg-[var(--color-bad-soft)] px-3 py-2 text-sm text-[var(--color-bad)]">
+							{error}
+						</p>
+					)}
+
+					<button
+						type="submit"
+						disabled={busy}
+						className="mt-7 w-full rounded-xl bg-[var(--color-accent)] px-4 py-3 font-medium text-[var(--color-accent-fg)] shadow-[var(--shadow-card)] transition hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
+					>
+						{busy ? 'Einen Moment…' : mode === 'login' ? 'Anmelden' : 'Konto anlegen'}
+					</button>
+
+					<button
+						type="button"
+						onClick={() => {
+							setMode(mode === 'login' ? 'signup' : 'login');
+							setError(null);
+						}}
+						className="mt-5 w-full text-sm text-[var(--color-muted)] transition hover:text-[var(--color-fg)]"
+					>
+						{mode === 'login' ? (
+							<>
+								Noch kein Konto? <span className="underline">Registrieren</span>
+							</>
+						) : (
+							<>
+								Schon registriert? <span className="underline">Anmelden</span>
+							</>
+						)}
+					</button>
+				</form>
+			</section>
 		</main>
 	);
 }
 
+function Field({
+	label,
+	type,
+	value,
+	onChange,
+	placeholder,
+	minLength
+}: {
+	label: string;
+	type: string;
+	value: string;
+	onChange: (v: string) => void;
+	placeholder?: string;
+	minLength?: number;
+}) {
+	return (
+		<label className="block">
+			<span className="text-sm font-medium">{label}</span>
+			<input
+				type={type}
+				required
+				minLength={minLength}
+				value={value}
+				placeholder={placeholder}
+				onChange={(e) => onChange(e.target.value)}
+				className="mt-1.5 w-full rounded-xl border border-[var(--color-line)] bg-[var(--color-surface)] px-3.5 py-2.5 outline-none transition placeholder:text-[var(--color-faint)] focus:border-[var(--color-accent)]"
+			/>
+		</label>
+	);
+}
+
 function translate(message: string): string {
-	if (message.includes('Invalid login credentials')) return 'E-Mail oder Passwort stimmt nicht';
-	if (message.includes('already registered')) return 'Diese E-Mail ist bereits vergeben';
-	if (message.includes('Password should be')) return 'Passwort braucht mindestens 6 Zeichen';
+	if (message.includes('Invalid login credentials')) return 'E-Mail oder Passwort stimmt nicht.';
+	if (message.includes('already been registered')) return 'Diese E-Mail ist bereits vergeben.';
+	if (message.includes('Password should be')) return 'Das Passwort braucht mindestens 6 Zeichen.';
 	return message;
 }
