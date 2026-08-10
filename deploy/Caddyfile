@@ -1,0 +1,25 @@
+{
+	email {$ACME_EMAIL:admin@example.com}
+}
+
+{$APP_DOMAIN} {
+	reverse_proxy web:3000
+	encode zstd gzip
+}
+
+{$API_DOMAIN} {
+	reverse_proxy api:3001 {
+		# sse darf nicht gepuffert werden, sonst kommt die antwort stockend an
+		flush_interval -1
+	}
+	encode zstd gzip
+}
+
+{$DB_DOMAIN} {
+	reverse_proxy kong:8000
+	encode zstd gzip
+
+	# das studio ist nicht fuer die oeffentlichkeit gedacht
+	@studio path /studio* /project*
+	respond @studio 404
+}
