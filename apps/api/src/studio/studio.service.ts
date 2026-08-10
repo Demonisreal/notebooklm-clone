@@ -8,7 +8,7 @@ import { SupabaseService } from '../supabase/supabase.service';
 // gemini flash schafft deutlich mehr, aber lange prompts kosten zeit und quota
 const MAX_CONTEXT_CHARS = 24000;
 
-const INSTRUCTIONS: Record<Exclude<StudioKind, 'mindmap'>, string> = {
+const INSTRUCTIONS: Record<Exclude<StudioKind, 'mindmap' | 'audio'>, string> = {
 	briefing:
 		'Fasse die Quellen zu einem Briefing zusammen: worum es geht, die wichtigsten Aussagen als Stichpunkte, offene Fragen. Höchstens 400 Wörter.',
 	faq: 'Formuliere sechs bis acht Fragen, die jemand zu diesen Quellen stellen würde, und beantworte sie jeweils in zwei bis drei Sätzen.',
@@ -24,7 +24,7 @@ export class StudioService {
 		@Inject(LLM_PROVIDER) private readonly llm: LlmProvider
 	) {}
 
-	async generate(user: AuthUser, notebookId: string, kind: StudioKind) {
+	async generate(user: AuthUser, notebookId: string, kind: Exclude<StudioKind, 'audio'>) {
 		const context = await this.context(user, notebookId);
 		if (!context) {
 			throw new InternalServerErrorException('Für dieses Notizbuch gibt es noch keine Quellen.');
@@ -76,7 +76,7 @@ export class StudioService {
 	}
 }
 
-function labelFor(kind: StudioKind): string {
+function labelFor(kind: Exclude<StudioKind, 'audio'>): string {
 	if (kind === 'briefing') return 'Briefing';
 	if (kind === 'faq') return 'Häufige Fragen';
 	return 'Lernhilfe';

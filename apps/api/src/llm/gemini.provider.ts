@@ -1,7 +1,14 @@
 import { ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Bottleneck from 'bottleneck';
-import { CompletionOptions, EMBEDDING_DIMENSIONS, LlmProvider, normalize } from './llm.provider';
+import {
+	CompletionOptions,
+	EMBEDDING_DIMENSIONS,
+	LlmProvider,
+	normalize,
+	Speaker,
+	SpokenAudio
+} from './llm.provider';
 
 const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
 
@@ -9,6 +16,7 @@ export class GeminiProvider implements LlmProvider {
 	private readonly apiKey: string;
 	private readonly chatModel: string;
 	private readonly embeddingModel: string;
+	private readonly ttsModel: string;
 
 	// free tier ~10 rpm, ohne drossel gibt ein grosses pdf sofort 429
 	private readonly limiter = new Bottleneck({ minTime: 5000, maxConcurrent: 1 });
@@ -17,6 +25,52 @@ export class GeminiProvider implements LlmProvider {
 		this.apiKey = config.getOrThrow<string>('GEMINI_API_KEY');
 		this.chatModel = config.get<string>('GEMINI_CHAT_MODEL', 'gemini-3.5-flash');
 		this.embeddingModel = config.get<string>('GEMINI_EMBEDDING_MODEL', 'gemini-embedding-2');
+		this.ttsModel = config.get<string>('GEMINI_TTS_MODEL', 'gemini-2.5-flash-preview-tts');
+	}
+
+	async speak(dialogue: string, speakers: Speaker[]): Promise<SpokenAudio> {
+		const response = await fetch(
+			`${BASE_URL}/models/${this.ttsModel}:generateContent?key=${this.apiKey}`,
+			{
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				signal: AbortSignal.timeout(240_000),
+				body: JSON.stringify({
+					contents: [
+						{ parts: [{ text: `Lies den folgenden Dialog natürlich vor:\n\n${dialogue}` }] }
+					],
+					generationConfig: {
+						responseModalities: ['AUDIO'],
+						speechConfig: {
+							multiSpeakerVoiceConfig: {
+								speakerVoiceConfigs: speakers.map((s) => ({
+									speaker: s.name,
+									voiceConfig: { prebuiltVoiceConfig: { voiceName: s.voice } }
+								}))
+							}
+						}
+					}
+				})
+			}
+		);
+
+		if (!response.ok) {
+			throw new ServiceUnavailableException(`Sprachausgabe fehlgeschlagen (${response.status})`);
+		}
+
+		const body = (await response.json()) as {
+			candidates?: {
+				content?: { parts?: { inlineData?: { data: string; mimeType: string } }[] };
+			}[];
+		};
+
+		const inline = body.candidates?.[0]?.content?.parts?.find((p) => p.inlineData)?.inlineData;
+		if (!inline) throw new ServiceUnavailableException('Das Modell hat kein Audio geliefert.');
+
+		return {
+			pcm: Buffer.from(inline.data, 'base64'),
+			sampleRate: Number(/rate=(\d+)/.exec(inline.mimeType)?.[1] ?? 24000)
+		};
 	}
 
 	async embed(texts: string[]): Promise<number[][]> {

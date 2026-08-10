@@ -4,6 +4,7 @@ import { FileText, HelpCircle, Network, Sparkles, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import type { MindMapNode, Note, StudioKind } from 'shared';
 import { api } from '@/lib/api';
+import { AudioOverview } from './audio-overview';
 import { MindMap } from './mind-map';
 
 type Props = { notebookId: string; reloadKey: number; hasSources: boolean };
@@ -79,6 +80,8 @@ export function StudioPanel({ notebookId, reloadKey, hasSources }: Props) {
 			)}
 
 			<div className="flex-1 overflow-y-auto px-4 pb-4">
+				<AudioOverview notebookId={notebookId} hasSources={hasSources} />
+
 				{tree && (
 					<div className="animate-rise mb-5">
 						<div className="mb-2 flex items-center justify-between">
