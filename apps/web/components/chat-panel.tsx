@@ -1,7 +1,14 @@
 'use client';
 
 import { ArrowUp, BookmarkPlus, Square } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import {
+	cloneElement,
+	type ReactElement,
+	type ReactNode,
+	useEffect,
+	useRef,
+	useState
+} from 'react';
 import type { ChatMessage, Citation } from 'shared';
 import { streamChat } from '@/lib/chat-stream';
 import { cn } from '@/lib/cn';
@@ -248,14 +255,26 @@ function Bubble({
 		);
 	}
 
+	const blocks = renderAnswer(message.content, message.citations, onCite);
+	const last = blocks[blocks.length - 1];
+	const cursor = (
+		<span
+			key="cursor"
+			className="ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 animate-pulse bg-[var(--color-accent)]"
+		/>
+	);
+	// vor dem ersten delta ist noch kein block da, an den der cursor koennte
+	const body =
+		pending && last
+			? [...blocks.slice(0, -1), cloneElement(last, undefined, last.props.children, cursor)]
+			: pending
+				? [cursor]
+				: blocks;
+
+	// ein <ul> darf nicht in einem <p> stehen, darum div statt p
 	return (
 		<div className="animate-rise group mb-8">
-			<p className="whitespace-pre-wrap leading-[1.75]">
-				{renderWithChips(message.content, message.citations, onCite)}
-				{pending && (
-					<span className="ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 animate-pulse bg-[var(--color-accent)]" />
-				)}
-			</p>
+			<div className="space-y-1.5 leading-[1.75]">{body}</div>
 
 			{!pending && (
 				<div className="mt-3 flex items-center gap-3">
@@ -284,8 +303,16 @@ function Bubble({
 	);
 }
 
-function renderWithChips(content: string, citations: Citation[], onCite: (c: Citation) => void) {
-	return content.split(/(\[\d+\])/g).map((part, i) => {
+function renderInline(text: string, citations: Citation[], onCite: (c: Citation) => void) {
+	return text.split(/(\*\*[^*]+\*\*|\[\d+\])/g).map((part, i) => {
+		const bold = /^\*\*([^*]+)\*\*$/.exec(part);
+		if (bold)
+			return (
+				<strong key={i} className="font-semibold">
+					{bold[1]}
+				</strong>
+			);
+
 		const match = /^\[(\d+)\]$/.exec(part);
 		if (!match) return <span key={i}>{part}</span>;
 
@@ -303,4 +330,49 @@ function renderWithChips(content: string, citations: Citation[], onCite: (c: Cit
 			</button>
 		);
 	});
+}
+
+function renderAnswer(content: string, citations: Citation[], onCite: (c: Citation) => void) {
+	const blocks: ReactElement<{ children?: ReactNode }>[] = [];
+	let items: string[] = [];
+
+	function flushList() {
+		if (!items.length) return;
+		blocks.push(
+			<ul key={blocks.length} className="list-disc space-y-1 pl-5">
+				{items.map((item, i) => (
+					<li key={i}>{renderInline(item, citations, onCite)}</li>
+				))}
+			</ul>
+		);
+		items = [];
+	}
+
+	for (const line of content.split('\n')) {
+		const bullet = /^[*-]\s+(.*)$/.exec(line);
+		if (bullet) {
+			items.push(bullet[1]);
+			continue;
+		}
+
+		flushList();
+
+		if (!line.trim()) continue;
+
+		const heading = /^#+\s*(.*)$/.exec(line);
+		if (heading) {
+			blocks.push(
+				<p key={blocks.length} className="font-semibold">
+					{renderInline(heading[1], citations, onCite)}
+				</p>
+			);
+			continue;
+		}
+
+		blocks.push(<p key={blocks.length}>{renderInline(line, citations, onCite)}</p>);
+	}
+
+	flushList();
+
+	return blocks;
 }

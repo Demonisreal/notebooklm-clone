@@ -58,9 +58,9 @@ if (existing.some((n) => n.title === 'Beispiel-Notizbuch')) {
 const notebook = await call('/notebooks', { title: 'Beispiel-Notizbuch', emoji: '📚' });
 console.log(`Notizbuch angelegt: ${notebook.id}`);
 
-const pdf = await readFile(new URL('../apps/api/test/fixtures/mehrseitig.pdf', import.meta.url));
+const pdf = await readFile(new URL('../apps/api/test/fixtures/rahmenvertrag.pdf', import.meta.url));
 const upload = await call(`/notebooks/${notebook.id}/sources/upload-url`, {
-	filename: 'vertragsunterlagen.pdf',
+	filename: 'rahmenvertrag.pdf',
 	size: pdf.length
 });
 
@@ -74,7 +74,7 @@ if (!put.ok) throw new Error(`Upload fehlgeschlagen: ${put.status}`);
 await call(`/notebooks/${notebook.id}/sources`, {
 	kind: 'file',
 	storagePath: upload.path,
-	title: 'Vertragsunterlagen.pdf'
+	title: 'Rahmenvertrag Zephyr-7.pdf'
 });
 
 await call(`/notebooks/${notebook.id}/sources`, {
