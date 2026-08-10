@@ -10,8 +10,7 @@ export class GeminiProvider implements LlmProvider {
 	private readonly chatModel: string;
 	private readonly embeddingModel: string;
 
-	// free tier liegt bei rund 10-15 requests/minute, ein 200-seiten-pdf
-	// laeuft ohne drossel sofort in ein 429
+	// free tier ~10 rpm, ohne drossel gibt ein grosses pdf sofort 429
 	private readonly limiter = new Bottleneck({ minTime: 5000, maxConcurrent: 1 });
 
 	constructor(config: ConfigService) {
@@ -40,7 +39,8 @@ export class GeminiProvider implements LlmProvider {
 		}
 
 		const body = (await response.json()) as { embeddings: { values: number[] }[] };
-		// unterhalb von 3072 dimensionen liefert gemini unnormalisierte vektoren
+
+		// embedding-2 kommt normalisiert, -001 bei 768 nicht (0.59 gemessen)
 		return body.embeddings.map((embedding) => normalize(embedding.values));
 	}
 
