@@ -29,8 +29,10 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
 	});
 
 	if (!response.ok) throw new ApiError(await readError(response), response.status);
-	if (response.status === 204) return undefined as T;
-	return response.json() as Promise<T>;
+
+	// nest schickt bei null einen leeren body mit 200, json() wuerde daran scheitern
+	const body = await response.text();
+	return (body ? JSON.parse(body) : null) as T;
 }
 
 // der stream braucht den token genauso, laeuft aber nicht ueber json
