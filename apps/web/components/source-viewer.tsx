@@ -1,5 +1,6 @@
 'use client';
 
+import { Highlighter, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 
@@ -30,40 +31,63 @@ export function SourceViewer({ sourceId, highlight, onClose }: Props) {
 	}, [source, highlight]);
 
 	return (
-		<div className="flex h-full flex-col">
-			<div className="flex items-start justify-between gap-2 border-b border-[var(--color-line)] px-4 py-3">
+		<div className="flex h-full flex-col bg-[var(--color-surface)]">
+			<header className="flex items-start justify-between gap-3 border-b border-[var(--color-line)] px-5 py-4">
 				<div className="min-w-0">
-					<h2 className="truncate text-sm font-semibold">{source?.title ?? 'Quelle'}</h2>
+					<h2 className="truncate font-medium">{source?.title ?? 'Quelle'}</h2>
 					{highlight && (
-						<p className="mt-0.5 text-xs text-[var(--color-muted)]">
+						<p className="mt-1 flex items-center gap-1.5 text-xs text-[var(--color-muted)]">
+							<Highlighter className="h-3 w-3" />
 							Belegstelle{highlight.page ? ` auf Seite ${highlight.page}` : ''} markiert
 						</p>
 					)}
 				</div>
-				<button onClick={onClose} className="text-xs text-[var(--color-muted)] hover:underline">
-					schließen
+				<button
+					onClick={onClose}
+					aria-label="Quelle schließen"
+					className="rounded-lg p-1.5 text-[var(--color-muted)] transition hover:bg-[var(--color-panel)] hover:text-[var(--color-fg)]"
+				>
+					<X className="h-4 w-4" />
 				</button>
-			</div>
+			</header>
 
-			<div className="flex-1 overflow-y-auto px-4 py-4">
-				{error && <p className="text-sm text-red-500">{error}</p>}
-				{!source && !error && <p className="text-sm text-[var(--color-muted)]">Wird geladen…</p>}
+			<div className="flex-1 overflow-y-auto px-5 py-5">
+				{error && (
+					<p className="rounded-lg bg-[var(--color-bad-soft)] px-3 py-2 text-sm text-[var(--color-bad)]">
+						{error}
+					</p>
+				)}
+
+				{!source && !error && (
+					<div className="space-y-2.5">
+						{[100, 92, 96, 70, 88].map((w, i) => (
+							<div
+								key={i}
+								className="h-3 animate-pulse rounded bg-[var(--color-panel)]"
+								style={{ width: `${w}%` }}
+							/>
+						))}
+					</div>
+				)}
+
 				{source && (
-					<pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
+					<article className="animate-fade whitespace-pre-wrap font-serif text-[15px] leading-[1.85]">
 						{segments(source.text, highlight).map((segment, i) =>
 							segment.marked ? (
-								<span
+								// ein chunk ist lang, flaechiges gelb erschlaegt den text.
+								// ruhiger hintergrund plus balken am rand zeigt den umfang genauso
+								<mark
 									key={i}
 									ref={marked}
-									className="rounded bg-amber-300/40 px-0.5 dark:bg-amber-500/30"
+									className="-mx-2 my-1 block rounded-r border-l-[3px] border-[var(--color-warn)] bg-[color-mix(in_oklab,var(--color-mark)_22%,transparent)] px-2 py-1 text-[var(--color-fg)]"
 								>
 									{segment.text}
-								</span>
+								</mark>
 							) : (
 								<span key={i}>{segment.text}</span>
 							)
 						)}
-					</pre>
+					</article>
 				)}
 			</div>
 		</div>
