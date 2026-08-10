@@ -14,7 +14,7 @@ export interface LlmProvider {
 	stream(prompt: string, options?: CompletionOptions): AsyncIterable<string>;
 }
 
-// gemini normalisiert nur bei den vollen 3072 dimensionen selbst
+// cosine braucht laenge 1, nicht jedes modell liefert die
 export function normalize(vector: number[]): number[] {
 	let sum = 0;
 	for (const value of vector) sum += value * value;

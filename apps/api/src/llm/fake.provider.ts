@@ -21,8 +21,7 @@ function seeded(seed: number): () => number {
 	};
 }
 
-// entwickeln und testen ohne api-key. gleicher text gibt immer denselben vektor,
-// aehnlicher text aber keine aehnlichen vektoren - die suche ist hier nicht semantisch
+// deterministisch, damit tests reproduzierbar sind - semantisch ist das nicht
 @Injectable()
 export class FakeProvider implements LlmProvider {
 	async embed(texts: string[]): Promise<number[][]> {

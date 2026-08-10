@@ -64,6 +64,24 @@ describe('resolveCitations', () => {
 		expect(citations).toEqual([]);
 	});
 
+	it('teilt gruppierte belege auf, gemini schreibt gern [1, 2]', () => {
+		const { text, citations } = resolveCitations('Gilt laut Quellen [1, 2].', blocks);
+		expect(text).toBe('Gilt laut Quellen [1][2].');
+		expect(citations.map((c) => c.chunkId)).toEqual(['chunk-a', 'chunk-b']);
+	});
+
+	it('behaelt in einer gruppe nur die auffindbaren nummern', () => {
+		const { text, citations } = resolveCitations('Beleg [2, 9, 3].', blocks);
+		expect(text).toBe('Beleg [1][2].');
+		expect(citations.map((c) => c.chunkId)).toEqual(['chunk-b', 'chunk-c']);
+	});
+
+	it('verwirft eine gruppe komplett, wenn keine nummer stimmt', () => {
+		const { text, citations } = resolveCitations('Angeblich [7, 8].', blocks);
+		expect(text).toBe('Angeblich.');
+		expect(citations).toEqual([]);
+	});
+
 	it('kuerzt lange schnipsel', () => {
 		const lang = { ...block('x'), content: 'Wort '.repeat(200) };
 		const { citations } = resolveCitations('Beleg [1].', [lang]);
