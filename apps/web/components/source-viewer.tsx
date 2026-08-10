@@ -74,8 +74,7 @@ export function SourceViewer({ sourceId, highlight, onClose }: Props) {
 					<article className="animate-fade whitespace-pre-wrap font-serif text-[15px] leading-[1.85]">
 						{segments(source.text, highlight).map((segment, i) =>
 							segment.marked ? (
-								// ein chunk ist lang, flaechiges gelb erschlaegt den text.
-								// ruhiger hintergrund plus balken am rand zeigt den umfang genauso
+								// flaechiges gelb ueber einen ganzen chunk erschlaegt den text
 								<mark
 									key={i}
 									ref={marked}
