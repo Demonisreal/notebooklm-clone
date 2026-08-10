@@ -35,8 +35,11 @@ export class JwtGuard implements CanActivate {
 		config: ConfigService
 	) {
 		this.issuer = config.getOrThrow<string>('SUPABASE_JWT_ISSUER');
-		// supabase signiert seit 2025 mit es256, der jwks-endpunkt gilt lokal wie in der cloud
-		this.jwks = createRemoteJWKSet(new URL(`${this.issuer}/.well-known/jwks.json`));
+
+		// der token nennt die oeffentliche adresse, geholt werden die schluessel aber
+		// intern - hinter einem proxy erreicht der container sich sonst nicht selbst
+		const base = config.getOrThrow<string>('SUPABASE_URL');
+		this.jwks = createRemoteJWKSet(new URL(`${base}/auth/v1/.well-known/jwks.json`));
 	}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {

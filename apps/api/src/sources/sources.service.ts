@@ -70,7 +70,11 @@ export class SourcesService {
 			.createSignedUploadUrl(path);
 
 		if (error || !data) throw new InternalServerErrorException(error?.message);
-		return { path, token: data.token, signedUrl: data.signedUrl };
+		return {
+			path,
+			token: data.token,
+			signedUrl: this.supabase.toPublicUrl(data.signedUrl)
+		};
 	}
 
 	async list(user: AuthUser, notebookId: string): Promise<Source[]> {
