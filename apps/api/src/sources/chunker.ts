@@ -5,8 +5,7 @@ export type Chunk = {
 	charEnd: number;
 };
 
-// ohne echten tokenizer ist jede token-schaetzung geraten, also direkt in zeichen
-// rechnen. rund 3000 zeichen entsprechen bei deutschem text etwa 800 token
+// ohne tokenizer ist jede token-zahl geraten, also gleich in zeichen
 const MAX_CHARS = 3000;
 const OVERLAP_CHARS = 450;
 const MIN_CHARS = 120;
@@ -61,7 +60,7 @@ function paragraphs(text: string): { start: number; end: number }[] {
 	return blocks.filter((block) => text.slice(block.start, block.end).trim().length > 0);
 }
 
-// ein einzelner absatz kann laenger als MAX_CHARS sein, dann an satzgrenzen weiter
+// absaetze koennen laenger als MAX_CHARS sein
 function split(text: string, range: { start: number; end: number }) {
 	if (range.end - range.start <= MAX_CHARS) return [range];
 

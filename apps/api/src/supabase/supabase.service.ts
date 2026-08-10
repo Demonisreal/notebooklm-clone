@@ -16,8 +16,7 @@ export class SupabaseService {
 		});
 	}
 
-	// mit dem user-token greift rls auf db-ebene, ein fehler im controller
-	// fuehrt dann nicht sofort zum datenleck
+	// mit dem user-token greift rls, ein controller-bug leckt dann nicht gleich daten
 	forUser(token: string): SupabaseClient {
 		return createClient(this.url, this.publishableKey, {
 			auth: { persistSession: false, autoRefreshToken: false },

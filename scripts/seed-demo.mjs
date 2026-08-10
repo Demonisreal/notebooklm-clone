@@ -1,5 +1,4 @@
-// legt den demo-zugang an und befuellt ein notizbuch, damit der erste blick
-// nicht auf eine leere oberflaeche faellt
+// demo-zugang plus befuelltes notizbuch, sonst startet man vor leerer oberflaeche
 import { readFile } from 'node:fs/promises';
 import { createClient } from '@supabase/supabase-js';
 
