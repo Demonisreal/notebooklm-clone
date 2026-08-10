@@ -149,7 +149,7 @@ pnpm seed:demo                # optional: Demo-Zugang mit befülltem Notizbuch
 ## Tests
 
 ```bash
-pnpm test     # 57 Tests
+pnpm test     # 51 Tests, mit laufendem Supabase 57
 ```
 
 Kein Abdeckungstheater, sondern Tests dort, wo Logik **still** falsch sein kann:
