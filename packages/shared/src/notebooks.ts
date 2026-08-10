@@ -14,6 +14,7 @@ export type Notebook = {
 	id: string;
 	title: string;
 	emoji: string;
+	sourceCount: number;
 	createdAt: string;
 	updatedAt: string;
 };

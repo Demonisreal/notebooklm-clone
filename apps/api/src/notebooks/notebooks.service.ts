@@ -9,13 +9,17 @@ type Row = {
 	emoji: string;
 	created_at: string;
 	updated_at: string;
+	sources?: { count: number }[];
 };
+
+const COLUMNS = 'id, title, emoji, created_at, updated_at, sources(count)';
 
 function toNotebook(row: Row): Notebook {
 	return {
 		id: row.id,
 		title: row.title,
 		emoji: row.emoji,
+		sourceCount: row.sources?.[0]?.count ?? 0,
 		createdAt: row.created_at,
 		updatedAt: row.updated_at
 	};
@@ -29,7 +33,7 @@ export class NotebooksService {
 		const { data, error } = await this.supabase
 			.forUser(user.token)
 			.from('notebooks')
-			.select('id, title, emoji, created_at, updated_at')
+			.select(COLUMNS)
 			.order('updated_at', { ascending: false });
 
 		if (error) throw new InternalServerErrorException(error.message);
@@ -41,7 +45,7 @@ export class NotebooksService {
 			.forUser(user.token)
 			.from('notebooks')
 			.insert({ user_id: user.id, title: input.title, emoji: input.emoji ?? '📓' })
-			.select('id, title, emoji, created_at, updated_at')
+			.select(COLUMNS)
 			.single();
 
 		if (error) throw new InternalServerErrorException(error.message);
@@ -54,7 +58,7 @@ export class NotebooksService {
 			.from('notebooks')
 			.update({ ...input, updated_at: new Date().toISOString() })
 			.eq('id', id)
-			.select('id, title, emoji, created_at, updated_at')
+			.select(COLUMNS)
 			.maybeSingle();
 
 		if (error) throw new InternalServerErrorException(error.message);
