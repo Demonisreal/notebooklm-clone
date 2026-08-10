@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { CompletionOptions, EMBEDDING_DIMENSIONS, LlmProvider, normalize } from './llm.provider';
+import {
+	CompletionOptions,
+	EMBEDDING_DIMENSIONS,
+	LlmProvider,
+	normalize,
+	Speaker,
+	SpokenAudio
+} from './llm.provider';
 
 function hash(text: string): number {
 	let h = 2166136261;
@@ -36,6 +43,19 @@ export class FakeProvider implements LlmProvider {
 		const parts: string[] = [];
 		for await (const chunk of this.stream(prompt, options)) parts.push(chunk);
 		return parts.join('');
+	}
+
+	async speak(dialogue: string, _speakers: Speaker[]): Promise<SpokenAudio> {
+		const sampleRate = 24000;
+		const seconds = Math.min(20, Math.max(2, Math.round(dialogue.length / 90)));
+		const pcm = Buffer.alloc(sampleRate * seconds * 2);
+
+		// ein leiser sinus, damit der player im dev-modus etwas abzuspielen hat
+		for (let i = 0; i < pcm.length / 2; i++) {
+			pcm.writeInt16LE(Math.round(Math.sin((i / sampleRate) * 2 * Math.PI * 220) * 2200), i * 2);
+		}
+
+		return { pcm, sampleRate };
 	}
 
 	async *stream(prompt: string, options?: CompletionOptions): AsyncIterable<string> {

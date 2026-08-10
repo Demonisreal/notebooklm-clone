@@ -22,13 +22,12 @@ Der Demo-Zugang hat ein vorbereitetes Notizbuch mit verarbeiteten Quellen, damit
 - **Quellenauswahl** per Auswahlkästchen — nur Angekreuztes wird durchsucht
 - **Hybride Suche** aus Vektor- und Volltextsuche, zusammengeführt per Reciprocal Rank Fusion
 - **Notizen**, manuell oder als übernommene Chat-Antwort
-- **Studio**: Briefing, häufige Fragen, Lernhilfe und eine Mind Map
+- **Studio**: Briefing, häufige Fragen, Lernhilfe, Mind Map und eine **Audio-Zusammenfassung** — ein Gespräch zweier Stimmen über die Quellen, erzeugt aus Skript plus Sprachsynthese
 
 ## Was bewusst nicht drin ist
 
 - **Kollaboration und Teilen** — braucht ein Rechtemodell über Besitz hinaus und hätte den Kern verdrängt
 - **YouTube-Transkripte** — die verfügbaren Bibliotheken brechen bei jeder Änderung an der Plattform, zu unsicher für den laufenden Betrieb
-- **Audio Overview** — der teuerste Posten in Zeit, ohne etwas über Architektur auszusagen
 - **Mehrmandantenfähigkeit** — ein Notizbuch gehört genau einem Konto; alles darüber hinaus braucht ein eigenes Rechtemodell
 
 ## Architektur
@@ -43,7 +42,7 @@ Browser
   │      Nest.js API
   │            ├── SourcesModule   Extraktion, Chunking, Embedding
   │            ├── ChatModule      Retrieval, Prompt, SSE-Stream
-  │            ├── StudioModule    Briefing, FAQ, Mind Map
+  │            ├── StudioModule    Briefing, FAQ, Mind Map, Audio
   │            └── SupabaseModule  Client mit User-Token, RLS greift
   │            │
   │            ├─────────► Gemini
@@ -72,10 +71,10 @@ Die HNSW-Indizes von pgvector arbeiten bis maximal 2000 Dimensionen, die Embeddi
 
 Zur Normalisierung kursiert die Regel, unterhalb von 3072 Dimensionen müsse man selbst normalisieren. Ich habe das gegen die API gemessen statt es zu glauben:
 
-| Modell | 768 Dimensionen | 3072 Dimensionen |
-|---|---|---|
-| `gemini-embedding-001` | Länge **0,589** | Länge 1,0 |
-| `gemini-embedding-2` | Länge 1,0 | Länge 1,0 |
+| Modell                 | 768 Dimensionen | 3072 Dimensionen |
+| ---------------------- | --------------- | ---------------- |
+| `gemini-embedding-001` | Länge **0,589** | Länge 1,0        |
+| `gemini-embedding-2`   | Länge 1,0       | Länge 1,0        |
 
 Für das ältere Modell stimmt die Regel also, für das eingesetzte nicht mehr. Der Code normalisiert trotzdem: Bei einem bereits normalisierten Vektor ist das eine Division durch 1 und kostet nichts, aber ein späterer Modellwechsel würde die Kosinus-Ähnlichkeit sonst still verfälschen — die Suche liefe weiter, nur mit schlechteren Treffern.
 
@@ -91,7 +90,13 @@ Indexiert wird der extrahierte Text, und `char_start`/`char_end` zeigen exakt do
 
 Ich zeige damit genau das, was auch durchsucht wurde.
 
-### 5. Ingestion in-process statt Queue
+### 5. Audio-Zusammenfassung in zwei Schritten
+
+Erst schreibt das Sprachmodell aus den Quellen ein Gespräch zwischen zwei Personen, dann spricht ein zweites Modell dieses Skript mit zwei Stimmen ein. Beides läuft über denselben Anbieter, es kommt kein weiterer Dienst dazu.
+
+Zwei Punkte, die dabei zu klären waren: Die Sprachsynthese liefert rohes PCM ohne Container, damit kann kein Browser etwas anfangen — ein 44 Byte großer WAV-Header davor löst das, ohne eine Bibliothek zu brauchen. Und ein zweiminütiges Gespräch braucht rund anderthalb Minuten in der Erzeugung; das läuft deshalb wie die Ingestion im Hintergrund mit Status in der Datenbank, statt die Anfrage offen zu halten.
+
+### 6. Ingestion in-process statt Queue
 
 Bei einem einzelnen API-Container genügt asynchrone Verarbeitung im Prozess mit Statusverfolgung in der Datenbank. Eine echte Queue (BullMQ mit Redis) wäre die saubere Lösung, kostet aber einen halben Tag.
 
