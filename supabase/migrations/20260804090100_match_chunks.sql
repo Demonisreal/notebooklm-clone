@@ -1,10 +1,7 @@
--- laedt pgvector in die session. vorher ist hnsw.iterative_scan nur ein platzhalter,
--- und den darf man ohne superuser-rechte nicht als funktionsattribut setzen
+-- laedt pgvector, sonst ist hnsw.iterative_scan unten nur ein platzhalter
 do $$ begin perform '[1]'::vector; end $$;
 
--- websearch_to_tsquery verknuepft alle begriffe mit AND. eine frage wie
--- "kuendigungsfrist und garantie" findet damit nichts, obwohl beide begriffe
--- einzeln vorkommen. fuer den volltext-zweig zaehlt recall, sortiert wird per rrf
+-- websearch_to_tsquery nimmt AND, damit findet "frist und garantie" nichts
 create or replace function to_or_tsquery(p_config regconfig, p_text text)
 returns tsquery
 language sql
@@ -19,8 +16,7 @@ as $$
 	)::tsquery;
 $$;
 
--- hybride suche: vektor + volltext, zusammengefuehrt per reciprocal rank fusion.
--- reine vektorsuche findet eigennamen, paragraphen und zahlen schlecht.
+-- vektor + volltext per rrf, weil vektoren bei paragraphen und zahlen schwach sind
 create or replace function match_chunks(
 	p_notebook_id uuid,
 	p_source_ids uuid[],
@@ -39,9 +35,8 @@ returns table (
 )
 language plpgsql
 stable
--- ohne iterative scan liefert hnsw bei abgewaehlten quellen still zu wenige treffer:
--- der index holt ef_search kandidaten und der filter wirft sie danach alle weg.
--- als funktionsattribut, weil eine stable function kein SET im rumpf ausfuehren darf
+-- ohne das kommt bei abgewaehlten quellen nichts zurueck: der index holt
+-- ef_search kandidaten, der filter wirft sie weg. attribut, weil stable kein SET erlaubt
 set hnsw.iterative_scan = 'relaxed_order'
 as $$
 declare

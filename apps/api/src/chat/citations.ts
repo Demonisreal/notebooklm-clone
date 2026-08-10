@@ -10,20 +10,26 @@ export type ContextBlock = {
 	content: string;
 };
 
-const MARKER = /\[(\d+)\]/g;
+// gemini gruppiert mehrere belege gern als [1, 2, 5], also gleich mit einsammeln
+const MARKER = /\[(\d+(?:\s*,\s*\d+)*)\]/g;
 const SNIPPET_CHARS = 220;
 
-// modelle erfinden regelmaessig belege, die es nicht gibt. was sich nicht
-// aufloesen laesst, fliegt raus statt als toter chip im text zu stehen
+// modelle erfinden belege, die es nicht gibt - die fliegen raus
 export function resolveCitations(text: string, blocks: ContextBlock[]) {
 	const renumbered = new Map<number, number>();
 
-	const cleaned = text.replace(MARKER, (match, raw: string) => {
-		const original = Number(raw);
-		if (original < 1 || original > blocks.length) return '';
+	const cleaned = text.replace(MARKER, (_match, raw: string) => {
+		const valid = raw
+			.split(',')
+			.map((part) => Number(part.trim()))
+			.filter((n) => Number.isInteger(n) && n >= 1 && n <= blocks.length);
 
-		if (!renumbered.has(original)) renumbered.set(original, renumbered.size + 1);
-		return `[${renumbered.get(original)}]`;
+		return valid
+			.map((original) => {
+				if (!renumbered.has(original)) renumbered.set(original, renumbered.size + 1);
+				return `[${renumbered.get(original)}]`;
+			})
+			.join('');
 	});
 
 	const citations: Citation[] = [...renumbered.entries()].map(([original, n]) => {

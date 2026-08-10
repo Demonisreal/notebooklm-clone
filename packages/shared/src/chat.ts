@@ -23,8 +23,7 @@ export type Citation = {
 export type ChatStreamEvent =
 	| { type: 'meta'; conversationId: string; messageId: string }
 	| { type: 'delta'; text: string }
-	// text ist die bereinigte fassung: der stream liefert rohe modellausgabe,
-	// erst hier sind erfundene belege raus und die uebrigen neu nummeriert
+	// bereinigte fassung - der stream selbst liefert rohe modellausgabe
 	| { type: 'citations'; text: string; items: Citation[] }
 	| { type: 'error'; message: string }
 	| { type: 'done' };
