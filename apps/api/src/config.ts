@@ -13,11 +13,10 @@ const schema = z.object({
 	SUPABASE_SECRET_KEY: z.string().min(1),
 	SUPABASE_JWT_ISSUER: z.string().url(),
 
-	LLM_PROVIDER: z.enum(['fake', 'gemini', 'openai']).default('fake'),
+	LLM_PROVIDER: z.enum(['fake', 'gemini']).default('fake'),
 	GEMINI_API_KEY: z.string().optional(),
 	GEMINI_CHAT_MODEL: z.string().default('gemini-3.5-flash'),
-	GEMINI_EMBEDDING_MODEL: z.string().default('gemini-embedding-2'),
-	OPENAI_API_KEY: z.string().optional()
+	GEMINI_EMBEDDING_MODEL: z.string().default('gemini-embedding-2')
 });
 
 export type Config = z.infer<typeof schema>;
