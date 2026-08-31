@@ -6,7 +6,7 @@ Quellen hochladen, mit ihnen chatten, und jede Aussage über einen Beleg zurück
 
 ---
 
-## Ausprobieren
+## Live ausprobieren
 
 **→ [notebook.dmn-software.com](https://notebook.dmn-software.com)**
 
@@ -177,10 +177,13 @@ Der API-Container erreicht seine **eigene öffentliche Adresse nicht** — hinte
 
 Der **Token-Aussteller unterscheidet sich je nach Betriebsart**: Selbst gehostetes GoTrue schreibt den nackten Host in `iss`, die lokale CLI hängt `/auth/v1` an. Die Prüfung ist deshalb konfigurierbar statt fest verdrahtet.
 
-
-## Was ich mit mehr Zeit machen würde
+## Als Nächstes
 
 - **Reranking** der Treffer mit einem Cross-Encoder — RRF ordnet gut, ein Reranker ordnet besser
 - **Bewertungsdatensatz** für die Retrieval-Qualität: feste Fragen mit erwarteten Fundstellen, damit sich Änderungen an Chunking oder Suche messen statt erahnen lassen
 - **BullMQ** für die Verarbeitung, sobald mehr als ein API-Container läuft
 - **Feinere Belegstellen**: aktuell wird der ganze Chunk markiert. Den belegenden Satz innerhalb des Chunks zu bestimmen, würde die Markierung deutlich präziser machen
+
+## Lizenz
+
+MIT — siehe [LICENSE](LICENSE).
