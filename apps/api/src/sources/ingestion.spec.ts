@@ -9,7 +9,7 @@ type Row = {
 	metadata: { rawText?: string };
 };
 
-// nur der verzweigungspfad in extract() wird geprueft, nicht die datenbank
+// only the branching in extract() gets checked here, not the database
 function extractOf(service: IngestionService) {
 	return (db: unknown, row: Row) =>
 		(
@@ -32,47 +32,47 @@ function serviceWithFile(content: string) {
 }
 
 describe('IngestionService.extract', () => {
-	it('liest hochgeladene textdateien aus dem storage', async () => {
-		const { extract, db } = serviceWithFile('Inhalt einer hochgeladenen Datei');
+	it('reads uploaded text files from storage', async () => {
+		const { extract, db } = serviceWithFile('Contents of an uploaded file');
 		const result = await extract(db, {
 			kind: 'text',
-			storage_path: 'user/datei.txt',
+			storage_path: 'user/file.txt',
 			source_url: null,
 			metadata: {}
 		});
-		expect(result.text).toBe('Inhalt einer hochgeladenen Datei');
+		expect(result.text).toBe('Contents of an uploaded file');
 	});
 
-	it('liest markdown-dateien ebenso aus dem storage', async () => {
-		const { extract, db } = serviceWithFile('# Titel\n\nAbsatz');
+	it('reads markdown files from storage the same way', async () => {
+		const { extract, db } = serviceWithFile('# Heading\n\nParagraph');
 		const result = await extract(db, {
 			kind: 'markdown',
-			storage_path: 'user/datei.md',
+			storage_path: 'user/file.md',
 			source_url: null,
 			metadata: {}
 		});
-		expect(result.text).toContain('Titel');
+		expect(result.text).toContain('Heading');
 	});
 
-	it('nimmt eingefuegten text, wenn keine datei dahintersteht', async () => {
-		const { extract, db } = serviceWithFile('sollte nicht benutzt werden');
+	it('takes pasted text when there is no file behind it', async () => {
+		const { extract, db } = serviceWithFile('should not be used');
 		const result = await extract(db, {
 			kind: 'text',
 			storage_path: null,
 			source_url: null,
-			metadata: { rawText: 'Direkt eingefügter Text' }
+			metadata: { rawText: 'Text pasted straight in' }
 		});
-		expect(result.text).toBe('Direkt eingefügter Text');
+		expect(result.text).toBe('Text pasted straight in');
 	});
 
-	it('meldet eine leere quelle statt sie als fertig zu speichern', async () => {
+	it('flags an empty source instead of storing it as ready', async () => {
 		const { extract, db } = serviceWithFile('   \n  ');
 		await expect(
-			extract(db, { kind: 'text', storage_path: 'user/leer.txt', source_url: null, metadata: {} })
+			extract(db, { kind: 'text', storage_path: 'user/empty.txt', source_url: null, metadata: {} })
 		).rejects.toThrow(UnsupportedSourceError);
 	});
 
-	it('lehnt eine url ohne adresse ab', async () => {
+	it('rejects a url without an address', async () => {
 		const { extract, db } = serviceWithFile('');
 		await expect(
 			extract(db, { kind: 'url', storage_path: null, source_url: null, metadata: {} })

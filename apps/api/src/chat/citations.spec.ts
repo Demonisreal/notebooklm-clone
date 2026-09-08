@@ -5,86 +5,86 @@ function block(id: string, page: number | null = null): ContextBlock {
 	return {
 		chunkId: `chunk-${id}`,
 		sourceId: `source-${id}`,
-		sourceTitle: `Quelle ${id}`,
+		sourceTitle: `Source ${id}`,
 		page,
 		charStart: 0,
 		charEnd: 10,
-		content: `Inhalt von ${id}`
+		content: `Content of ${id}`
 	};
 }
 
 describe('resolveCitations', () => {
 	const blocks = [block('a', 12), block('b'), block('c')];
 
-	it('loest gueltige belege auf', () => {
-		const { citations } = resolveCitations('Die Frist ist vier Wochen [1].', blocks);
+	it('resolves valid references', () => {
+		const { citations } = resolveCitations('The notice period is four weeks [1].', blocks);
 		expect(citations).toHaveLength(1);
 		expect(citations[0].chunkId).toBe('chunk-a');
 		expect(citations[0].page).toBe(12);
 	});
 
-	it('wirft erfundene nummern raus statt sie als toten chip zu rendern', () => {
-		const { text, citations } = resolveCitations('Belegt [1], erfunden [9].', blocks);
+	it('throws out made up numbers instead of rendering a dead chip', () => {
+		const { text, citations } = resolveCitations('Backed [1], made up [9].', blocks);
 		expect(text).not.toContain('[9]');
 		expect(citations).toHaveLength(1);
 	});
 
-	it('verwirft auch die null', () => {
-		const { text, citations } = resolveCitations('Unsinn [0].', blocks);
-		expect(text).toBe('Unsinn.');
+	it('drops the zero as well', () => {
+		const { text, citations } = resolveCitations('Nonsense [0].', blocks);
+		expect(text).toBe('Nonsense.');
 		expect(citations).toHaveLength(0);
 	});
 
-	it('nummeriert lueckenlos neu, wenn das modell bloecke ueberspringt', () => {
-		const { text, citations } = resolveCitations('Erst [3], dann [1].', blocks);
-		expect(text).toBe('Erst [1], dann [2].');
+	it('renumbers without gaps when the model skips blocks', () => {
+		const { text, citations } = resolveCitations('First [3], then [1].', blocks);
+		expect(text).toBe('First [1], then [2].');
 		expect(citations.map((c) => c.chunkId)).toEqual(['chunk-c', 'chunk-a']);
 	});
 
-	it('vergibt fuer denselben block nur eine nummer', () => {
-		const { text, citations } = resolveCitations('Hier [2] und dort [2].', blocks);
-		expect(text).toBe('Hier [1] und dort [1].');
+	it('hands out one number per block', () => {
+		const { text, citations } = resolveCitations('Here [2] and there [2].', blocks);
+		expect(text).toBe('Here [1] and there [1].');
 		expect(citations).toHaveLength(1);
 	});
 
-	it('raeumt leerzeichen vor satzzeichen auf', () => {
-		const { text } = resolveCitations('Ein Satz [7] .', blocks);
-		expect(text).toBe('Ein Satz.');
+	it('cleans up spaces in front of punctuation', () => {
+		const { text } = resolveCitations('One sentence [7] .', blocks);
+		expect(text).toBe('One sentence.');
 	});
 
-	it('kommt ohne belege klar', () => {
-		const { text, citations } = resolveCitations('Dazu steht nichts in den Quellen.', blocks);
-		expect(text).toBe('Dazu steht nichts in den Quellen.');
+	it('copes without any references', () => {
+		const { text, citations } = resolveCitations('The sources say nothing about that.', blocks);
+		expect(text).toBe('The sources say nothing about that.');
 		expect(citations).toEqual([]);
 	});
 
-	it('verwirft alles, wenn gar keine bloecke da sind', () => {
-		const { text, citations } = resolveCitations('Angeblich belegt [1].', []);
-		expect(text).toBe('Angeblich belegt.');
+	it('drops everything when there are no blocks at all', () => {
+		const { text, citations } = resolveCitations('Supposedly backed [1].', []);
+		expect(text).toBe('Supposedly backed.');
 		expect(citations).toEqual([]);
 	});
 
-	it('teilt gruppierte belege auf, gemini schreibt gern [1, 2]', () => {
-		const { text, citations } = resolveCitations('Gilt laut Quellen [1, 2].', blocks);
-		expect(text).toBe('Gilt laut Quellen [1][2].');
+	it('splits grouped references, gemini likes to write [1, 2]', () => {
+		const { text, citations } = resolveCitations('True according to the sources [1, 2].', blocks);
+		expect(text).toBe('True according to the sources [1][2].');
 		expect(citations.map((c) => c.chunkId)).toEqual(['chunk-a', 'chunk-b']);
 	});
 
-	it('behaelt in einer gruppe nur die auffindbaren nummern', () => {
-		const { text, citations } = resolveCitations('Beleg [2, 9, 3].', blocks);
-		expect(text).toBe('Beleg [1][2].');
+	it('keeps only the numbers in a group that can be found', () => {
+		const { text, citations } = resolveCitations('Reference [2, 9, 3].', blocks);
+		expect(text).toBe('Reference [1][2].');
 		expect(citations.map((c) => c.chunkId)).toEqual(['chunk-b', 'chunk-c']);
 	});
 
-	it('verwirft eine gruppe komplett, wenn keine nummer stimmt', () => {
-		const { text, citations } = resolveCitations('Angeblich [7, 8].', blocks);
-		expect(text).toBe('Angeblich.');
+	it('drops a whole group when no number checks out', () => {
+		const { text, citations } = resolveCitations('Supposedly [7, 8].', blocks);
+		expect(text).toBe('Supposedly.');
 		expect(citations).toEqual([]);
 	});
 
-	it('kuerzt lange schnipsel', () => {
-		const lang = { ...block('x'), content: 'Wort '.repeat(200) };
-		const { citations } = resolveCitations('Beleg [1].', [lang]);
+	it('shortens long snippets', () => {
+		const long = { ...block('x'), content: 'Word '.repeat(200) };
+		const { citations } = resolveCitations('Reference [1].', [long]);
 		expect(citations[0].snippet.length).toBeLessThan(240);
 		expect(citations[0].snippet.endsWith('…')).toBe(true);
 	});

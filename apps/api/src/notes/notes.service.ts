@@ -69,7 +69,7 @@ export class NotesService {
 			.maybeSingle();
 
 		if (error) throw new InternalServerErrorException(error.message);
-		if (!data) throw new NotFoundException('Notiz nicht gefunden');
+		if (!data) throw new NotFoundException('Note not found');
 		return toNote(data as Row);
 	}
 

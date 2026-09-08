@@ -18,7 +18,7 @@ type Viewer = {
 type Tab = 'sources' | 'chat' | 'studio';
 
 const TABS: { id: Tab; label: string }[] = [
-	{ id: 'sources', label: 'Quellen' },
+	{ id: 'sources', label: 'Sources' },
 	{ id: 'chat', label: 'Chat' },
 	{ id: 'studio', label: 'Studio' }
 ];
@@ -41,13 +41,13 @@ export default function NotebookPage({ params }: { params: Promise<{ id: string 
 		api<Notebook[]>('/notebooks')
 			.then((all) => {
 				const found = all.find((n) => n.id === id);
-				if (!found) throw new ApiError('Notizbuch nicht gefunden', 404);
+				if (!found) throw new ApiError('Notebook not found', 404);
 				setNotebook(found);
 				setTitle(found.title);
 			})
 			.catch((err) => {
 				if (err instanceof ApiError && err.status === 401) return router.replace('/login');
-				setError(err instanceof Error ? err.message : 'Konnte nicht laden');
+				setError(err instanceof Error ? err.message : 'Could not load the notebook');
 			});
 	}, [id, router]);
 
@@ -107,7 +107,7 @@ export default function NotebookPage({ params }: { params: Promise<{ id: string 
 						href="/notebooks"
 						className="mt-4 inline-block rounded-xl bg-[var(--color-accent)] px-4 py-2.5 text-sm font-medium text-[var(--color-accent-fg)]"
 					>
-						Zurück zur Übersicht
+						Back to notebooks
 					</a>
 				</div>
 			</main>
@@ -119,7 +119,7 @@ export default function NotebookPage({ params }: { params: Promise<{ id: string 
 			<header className="flex items-center gap-3 border-b border-[var(--color-line)] px-4 py-2.5">
 				<a
 					href="/notebooks"
-					aria-label="Zurück zur Übersicht"
+					aria-label="Back to notebooks"
 					className="rounded-lg p-1.5 text-[var(--color-muted)] transition hover:bg-[var(--color-panel)] hover:text-[var(--color-fg)]"
 				>
 					<ChevronLeft className="h-4 w-4" />
@@ -147,9 +147,7 @@ export default function NotebookPage({ params }: { params: Promise<{ id: string 
 						onClick={() => setRenaming(true)}
 						className="group flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-0.5 transition hover:bg-[var(--color-panel)]"
 					>
-						<span className="truncate text-sm font-medium">
-							{notebook?.title ?? 'Wird geladen…'}
-						</span>
+						<span className="truncate text-sm font-medium">{notebook?.title ?? 'Loading…'}</span>
 						<Pencil className="h-3 w-3 shrink-0 text-[var(--color-faint)] opacity-0 transition group-hover:opacity-100" />
 					</button>
 				)}

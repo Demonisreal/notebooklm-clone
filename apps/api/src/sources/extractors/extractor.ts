@@ -1,6 +1,6 @@
 export type Extracted = {
 	text: string;
-	// zeichen-offset, an dem jede seite beginnt. leer bei quellen ohne seiten
+	// character offset each page starts at. empty for sources without pages
 	pageStarts: number[];
 };
 

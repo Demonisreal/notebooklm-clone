@@ -3,7 +3,7 @@ import type { NextConfig } from 'next';
 
 const config: NextConfig = {
 	transpilePackages: ['shared'],
-	// standalone zieht nur die wirklich benutzten dateien ins image
+	// standalone pulls only the files that are actually used into the image
 	output: 'standalone',
 	outputFileTracingRoot: join(import.meta.dirname, '../..')
 };

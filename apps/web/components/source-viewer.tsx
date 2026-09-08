@@ -22,10 +22,10 @@ export function SourceViewer({ sourceId, highlight, onClose }: Props) {
 		setError(null);
 		api<SourceText>(`/sources/${sourceId}/text`)
 			.then(setSource)
-			.catch((err) => setError(err instanceof Error ? err.message : 'Konnte nicht laden'));
+			.catch((err) => setError(err instanceof Error ? err.message : 'Could not load the source'));
 	}, [sourceId]);
 
-	// ein chunk ist lang, bei 'center' landet man mitten drin statt am anfang
+	// a chunk is long, with 'center' you end up in the middle of it instead of at the top
 	useEffect(() => {
 		if (source && highlight) marked.current?.scrollIntoView({ block: 'start' });
 	}, [source, highlight]);
@@ -34,17 +34,17 @@ export function SourceViewer({ sourceId, highlight, onClose }: Props) {
 		<div className="flex h-full flex-col bg-[var(--color-surface)]">
 			<header className="flex items-start justify-between gap-3 border-b border-[var(--color-line)] px-5 py-4">
 				<div className="min-w-0">
-					<h2 className="truncate font-medium">{source?.title ?? 'Quelle'}</h2>
+					<h2 className="truncate font-medium">{source?.title ?? 'Source'}</h2>
 					{highlight && (
 						<p className="mt-1 flex items-center gap-1.5 text-xs text-[var(--color-muted)]">
 							<Highlighter className="h-3 w-3" />
-							Belegstelle{highlight.page ? ` auf Seite ${highlight.page}` : ''} markiert
+							Cited passage{highlight.page ? ` on page ${highlight.page}` : ''} highlighted
 						</p>
 					)}
 				</div>
 				<button
 					onClick={onClose}
-					aria-label="Quelle schließen"
+					aria-label="Close source"
 					className="rounded-lg p-1.5 text-[var(--color-muted)] transition hover:bg-[var(--color-panel)] hover:text-[var(--color-fg)]"
 				>
 					<X className="h-4 w-4" />
@@ -74,7 +74,7 @@ export function SourceViewer({ sourceId, highlight, onClose }: Props) {
 					<article className="animate-fade whitespace-pre-wrap font-serif text-[15px] leading-[1.85]">
 						{segments(source.text, highlight).map((segment, i) =>
 							segment.marked ? (
-								// flaechiges gelb ueber einen ganzen chunk erschlaegt den text
+								// a solid block of yellow over a whole chunk buries the text
 								<mark
 									key={i}
 									ref={marked}
@@ -93,7 +93,7 @@ export function SourceViewer({ sourceId, highlight, onClose }: Props) {
 	);
 }
 
-// die offsets zeigen exakt in diesen text, weil genau er auch indexiert wurde
+// the offsets point into exactly this text, because this is what got indexed
 function segments(text: string, highlight?: { charStart: number; charEnd: number } | null) {
 	if (!highlight) return [{ text, marked: false }];
 
