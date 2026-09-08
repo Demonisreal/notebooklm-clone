@@ -13,9 +13,11 @@ Quellen hochladen, mit ihnen chatten, und jede Aussage über einen Beleg zurück
 |              |                       |
 | ------------ | --------------------- |
 | **E-Mail**   | `demo@notebook.local` |
-| **Passwort** | `demo12345`           |
+| **Passwort** | `demo-belege-2026`    |
 
 Der Zugang hat ein vorbereitetes Notizbuch mit zwei fertig verarbeiteten Quellen. Es muss also nichts hochgeladen werden, bevor etwas zu sehen ist.
+
+Er ist schreibgeschützt: Chat, Belege und Studio laufen, Hochladen, Umbenennen und Löschen lehnt die API ab. So findet auch der nächste Besucher das Beispiel-Notizbuch unversehrt vor. Wer selbst Quellen einwerfen will, legt sich in derselben Oberfläche ein eigenes Konto an.
 
 ### In zwei Minuten durch die Kernfunktion
 
@@ -25,7 +27,7 @@ Der Zugang hat ein vorbereitetes Notizbuch mit zwei fertig verarbeiteten Quellen
 4. **Auf eine Ziffer klicken.** Rechts öffnet sich die Quelle, springt an die Fundstelle und markiert sie. Über der Stelle steht, auf welcher Seite sie steht.
 5. Optional: Rechts im Studio **„Gespräch erzeugen"** — daraus entsteht eine Audio-Zusammenfassung als Dialog zweier Stimmen. Das dauert ein bis zwei Minuten.
 
-Ebenfalls einen Blick wert: eine Quelle links **abwählen** und dieselbe Frage erneut stellen — dann wird nur noch der Rest durchsucht. Und ein **gescanntes PDF** hochladen: Es wird erkannt und mit einer verständlichen Meldung abgewiesen, statt als leere Quelle zu enden.
+Ebenfalls einen Blick wert: eine Quelle links **abwählen** und dieselbe Frage erneut stellen — dann wird nur noch der Rest durchsucht. Und im eigenen Konto ein **gescanntes PDF** hochladen: Es wird erkannt und mit einer verständlichen Meldung abgewiesen, statt als leere Quelle zu enden.
 
 ---
 
@@ -87,6 +89,8 @@ Drei Details, die ich an der laufenden Datenbank nachgemessen habe, weil sie son
 
 **`websearch_to_tsquery` verknüpft mit UND.** „Was ist die Kündigungsfrist und wie lange läuft die Garantie?" wird zu `'kuendigungsfrist' & 'garanti'` und findet null Zeilen, obwohl beide Begriffe einzeln vorkommen — die hybride Suche wäre damit heimlich eine reine Vektorsuche gewesen. Die Lexeme werden jetzt mit ODER verknüpft, sortiert wird über `ts_rank_cd` und anschließend RRF.
 
+Die Retrieval-Funktion im Detail — Rangfusion, Zweisprachigkeit, der HNSW-Filterfehler und was noch fehlt — steht als eigener Text in [`docs/hybrid-search.md`](docs/hybrid-search.md) (englisch).
+
 ### 2. 768 Dimensionen, mit eigener Normalisierung
 
 Die HNSW-Indizes von pgvector arbeiten bis maximal 2000 Dimensionen, die Embedding-Modelle liefern standardmäßig 3072. Also 768 über `outputDimensionality`.
@@ -139,7 +143,9 @@ cp apps/web/.env.example apps/web/.env.local
 # Schlüssel aus der Ausgabe von "supabase status" eintragen
 
 pnpm dev                      # API auf :3001, Web auf :3000
-pnpm seed:demo                # optional: Demo-Zugang mit befülltem Notizbuch
+
+# optional: Demo-Zugang mit befülltem Notizbuch, Passwort frei wählbar
+DEMO_PASSWORD=geheim pnpm seed:demo
 ```
 
 **Ohne API-Schlüssel** läuft alles mit `LLM_PROVIDER=fake`: Der Fake-Anbieter erzeugt aus einem Hash des Textes reproduzierbare, normalisierte Vektoren. Gleicher Text ergibt immer denselben Vektor, ähnlicher Text aber _keine_ ähnlichen — die Suche ist damit nicht semantisch, aber die gesamte Kette von Chunking über Retrieval bis zum Beleg-Rücksprung ist entwickelbar und testbar. So ist das Projekt anfangs auch entstanden, bevor ein Schlüssel vorlag.
