@@ -15,10 +15,10 @@ export async function extractPdf(buffer: Buffer): Promise<Extracted> {
 		text += PAGE_SEPARATOR;
 	}
 
-	// gescannte pdfs liefern einen textlayer aus fast nur whitespace
+	// scanned pdfs come with a text layer of almost nothing but whitespace
 	if (text.trim().length < 20) {
 		throw new UnsupportedSourceError(
-			'Aus dieser PDF lässt sich kein Text lesen – vermutlich ein Scan ohne Texterkennung.'
+			'No text can be read from this PDF – most likely a scan without OCR.'
 		);
 	}
 
@@ -33,8 +33,8 @@ async function readPages(buffer: Buffer): Promise<string[]> {
 	} catch (error) {
 		const message = error instanceof Error ? error.message : '';
 		if (/password|encrypted/i.test(message)) {
-			throw new UnsupportedSourceError('Die PDF ist passwortgeschützt.');
+			throw new UnsupportedSourceError('The PDF is password protected.');
 		}
-		throw new UnsupportedSourceError('Die PDF konnte nicht gelesen werden.');
+		throw new UnsupportedSourceError('The PDF could not be read.');
 	}
 }

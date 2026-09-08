@@ -36,8 +36,8 @@ export class JwtGuard implements CanActivate {
 	) {
 		this.issuer = config.getOrThrow<string>('SUPABASE_JWT_ISSUER');
 
-		// der token nennt die oeffentliche adresse, geholt werden die schluessel aber
-		// intern - hinter einem proxy erreicht der container sich sonst nicht selbst
+		// the token names the public address, but the keys are fetched internally -
+		// behind a proxy the container cannot reach itself otherwise
 		const base = config.getOrThrow<string>('SUPABASE_URL');
 		this.jwks = createRemoteJWKSet(new URL(`${base}/auth/v1/.well-known/jwks.json`));
 	}
@@ -51,7 +51,7 @@ export class JwtGuard implements CanActivate {
 
 		const request = context.switchToHttp().getRequest<Request>();
 		const token = request.headers.authorization?.replace(/^Bearer /i, '');
-		if (!token) throw new UnauthorizedException('Kein Token übermittelt');
+		if (!token) throw new UnauthorizedException('No token provided');
 
 		try {
 			const { payload } = await jwtVerify(token, this.jwks, { issuer: this.issuer });
@@ -62,7 +62,7 @@ export class JwtGuard implements CanActivate {
 			};
 			return true;
 		} catch {
-			throw new UnauthorizedException('Token ungültig oder abgelaufen');
+			throw new UnauthorizedException('Token invalid or expired');
 		}
 	}
 }

@@ -1,8 +1,7 @@
 # Hybrid search: why retrieval is one SQL function
 
-> Context for readers arriving from outside the repository: this is a self-hosted NotebookLM
-> clone — upload sources, ask questions about them, and follow every statement in the answer
-> back to the passage it came from. Next.js, NestJS, Supabase/pgvector.
+> A self-hosted NotebookLM clone: upload sources, ask questions about them, and follow every
+> statement in the answer back to the passage it came from. Next.js, NestJS, Supabase/pgvector.
 > Live at [notebook.dmn-software.com](https://notebook.dmn-software.com), code at
 > [github.com/Demonisreal/notebooklm-clone](https://github.com/Demonisreal/notebooklm-clone).
 >
@@ -20,10 +19,10 @@ This is a write-up of how retrieval works and why it looks the way it does.
 
 ## Two kinds of question
 
-*What does the contract say about liability?* is a semantic question. Vector search handles it
+_What does the contract say about liability?_ is a semantic question. Vector search handles it
 well.
 
-*What is in paragraph 15a?* is not. The user is asking for a literal string. An embedding of
+_What is in paragraph 15a?_ is not. The user is asking for a literal string. An embedding of
 "paragraph 15a" sits close to every other paragraph reference in the document, so vector search
 returns something plausible and wrong. Product names, error codes and version numbers behave the
 same way.
@@ -62,20 +61,24 @@ is the prerequisite, not the reranker.
 Sources are mixed German and English, sometimes inside the same notebook. Two things follow from
 that.
 
-Stemming happens per chunk, not globally. The `chunks` table has a `lang` column and the search
-vector is a generated column over it:
+The schema is built for per-chunk stemming. The `chunks` table carries a `lang` column and the
+search vector is a generated column over it:
 
 ```sql
 lang regconfig not null default 'german',
 fts tsvector generated always as (to_tsvector(lang, content)) stored,
 ```
 
+The mechanism is there, but nothing drives it: ingestion inserts chunks without a `lang`, so every
+row falls back to the default and English sources are stemmed with the German configuration. The
+column is the half of the problem I solved; language detection is the half I did not.
+
 The question is the harder half, because I do not know what language it is in. So I build a
 German and an English `tsquery` and take `greatest()` of the two ranks.
 
-I also could not use `websearch_to_tsquery`. It joins terms with AND. A natural question like
-*Was ist die Kündigungsfrist und wann kam Zephyr-7?* would then require every word to appear
-inside one chunk, which never happens. I build the query from the lexemes myself and join them
+I also could not use `websearch_to_tsquery`. It joins terms with AND. A natural question — here
+a German one, _Was ist die Kündigungsfrist und wann kam Zephyr-7?_ — would then require every
+word to appear inside one chunk, which never happens. I build the query from the lexemes myself and join them
 with OR instead. RRF absorbs the loss in precision: a chunk that only matches one common word
 lands far down the keyword list and contributes almost nothing to the fused score.
 
@@ -106,13 +109,15 @@ therefore inserts 120 filler chunks into one source and two into another, then s
 filter on the small source and asserts that both come back.
 
 A related trap sits next to it: an empty array is not `NULL`. `'x' = any(array[]::uuid[])`
-evaluates to `false`, so deselecting *every* source would have returned nothing instead of
+evaluates to `false`, so deselecting _every_ source would have returned nothing instead of
 searching everything. The filter checks `cardinality(...) = 0` as well.
 
 ## What I would change
 
-`lang` is decided once per source at ingestion time. A document that switches language halfway
-through gets stemmed with the wrong configuration. Detection per chunk would fix that.
+`lang` is never set by the application. Every chunk falls back to the schema default `german`, so
+English sources are stemmed with the German configuration. Detection at ingestion time is the
+missing piece — per chunk rather than per source, so that a document switching language halfway
+through still lands in the right configuration.
 
 `k = 60` is the value from the original RRF paper. I never tuned it, because my test set is too
 small for any result to mean anything. That is the same gap that keeps the reranker out — an

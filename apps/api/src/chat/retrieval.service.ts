@@ -47,7 +47,7 @@ export class RetrievalService {
 		return rows.map((row) => ({
 			chunkId: row.id,
 			sourceId: row.source_id,
-			sourceTitle: titles.get(row.source_id) ?? 'Unbenannte Quelle',
+			sourceTitle: titles.get(row.source_id) ?? 'Untitled source',
 			page: row.page,
 			charStart: row.char_start,
 			charEnd: row.char_end,

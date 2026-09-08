@@ -26,25 +26,25 @@ function context(handler: () => void, email: string | null) {
 const routes = new Routes();
 
 describe('DemoWriteGuard', () => {
-	it('blockt den demo-zugang auf schreibenden routen, auch mit anderer schreibweise', () => {
+	it('blocks the demo account on writing routes, whatever the casing', () => {
 		const demo = context(routes.remove, 'demo@notebook.test');
 		const call = () => guard('Demo@notebook.test').canActivate(demo);
 		expect(call).toThrow(ForbiddenException);
 	});
 
-	it('laesst chat und studio durch, die sind der zweck der demo', () => {
+	it('lets chat and studio through, they are the point of the demo', () => {
 		expect(guard('demo@notebook.test').canActivate(context(routes.ask, 'demo@notebook.test'))).toBe(
 			true
 		);
 	});
 
-	it('laesst andere konten schreiben', () => {
-		expect(guard('demo@notebook.test').canActivate(context(routes.remove, 'chef@firma.test'))).toBe(
-			true
-		);
+	it('lets other accounts write', () => {
+		expect(
+			guard('demo@notebook.test').canActivate(context(routes.remove, 'boss@company.test'))
+		).toBe(true);
 	});
 
-	it('haelt lokal niemanden auf, wo keine demo-adresse konfiguriert ist', () => {
+	it('stops nobody where no demo address is configured', () => {
 		expect(guard().canActivate(context(routes.remove, 'demo@notebook.test'))).toBe(true);
 	});
 });
