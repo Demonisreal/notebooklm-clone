@@ -48,7 +48,8 @@ create table chunks (
 	char_start int not null,
 	char_end int not null,
 
-	-- sources are mixed german/english, so stemming per chunk instead of globally
+	-- sources are mixed german/english; per-chunk stemming hangs on this column,
+	-- but nothing sets it yet, so every row uses the default
 	lang regconfig not null default 'german',
 	fts tsvector generated always as (to_tsvector(lang, content)) stored,
 

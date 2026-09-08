@@ -89,7 +89,7 @@ Three details I measured against the running database, because they fail **silen
 
 **`websearch_to_tsquery` joins terms with AND.** "What is the notice period and how long does the warranty run?" becomes `'notice' & 'period' & 'warranti'` and matches zero rows, even though the terms occur individually — hybrid search would quietly have been pure vector search. The lexemes are now joined with OR, ranked through `ts_rank_cd` and then fused with RRF.
 
-The retrieval function in full — rank fusion, bilingual stemming, the HNSW filter bug and what is still missing — is written up in [`docs/hybrid-search.md`](docs/hybrid-search.md).
+The retrieval function in full — rank fusion, the two-language full text side, the HNSW filter bug and what is still missing — is written up in [`docs/hybrid-search.md`](docs/hybrid-search.md).
 
 ### 2. 768 dimensions, with normalisation of my own
 
