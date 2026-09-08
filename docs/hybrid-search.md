@@ -61,13 +61,17 @@ is the prerequisite, not the reranker.
 Sources are mixed German and English, sometimes inside the same notebook. Two things follow from
 that.
 
-Stemming happens per chunk, not globally. The `chunks` table has a `lang` column and the search
-vector is a generated column over it:
+The schema is built for per-chunk stemming. The `chunks` table carries a `lang` column and the
+search vector is a generated column over it:
 
 ```sql
 lang regconfig not null default 'german',
 fts tsvector generated always as (to_tsvector(lang, content)) stored,
 ```
+
+The mechanism is there, but nothing drives it: ingestion inserts chunks without a `lang`, so every
+row falls back to the default and English sources are stemmed with the German configuration. The
+column is the half of the problem I solved; language detection is the half I did not.
 
 The question is the harder half, because I do not know what language it is in. So I build a
 German and an English `tsquery` and take `greatest()` of the two ranks.
@@ -110,8 +114,10 @@ searching everything. The filter checks `cardinality(...) = 0` as well.
 
 ## What I would change
 
-`lang` is decided once per source at ingestion time. A document that switches language halfway
-through gets stemmed with the wrong configuration. Detection per chunk would fix that.
+`lang` is never set by the application. Every chunk falls back to the schema default `german`, so
+English sources are stemmed with the German configuration. Detection at ingestion time is the
+missing piece — per chunk rather than per source, so that a document switching language halfway
+through still lands in the right configuration.
 
 `k = 60` is the value from the original RRF paper. I never tuned it, because my test set is too
 small for any result to mean anything. That is the same gap that keeps the reranker out — an
