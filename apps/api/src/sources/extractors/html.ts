@@ -5,18 +5,18 @@ import { Extracted, UnsupportedSourceError } from './extractor';
 export type Article = Extracted & { title: string | null };
 
 export function extractHtml(html: string, url: string): Article {
-	// readability braucht ein echtes document, ein html-parser allein reicht nicht
+	// readability needs a real document, an html parser on its own will not do
 	const dom = new JSDOM(html, { url });
 	const article = new Readability(dom.window.document).parse();
 
 	const text = article?.textContent?.trim() ?? '';
 	if (text.length < 40) {
 		throw new UnsupportedSourceError(
-			'Von dieser Seite ließ sich kein Inhalt lesen – lädt sie ihren Text per JavaScript nach?'
+			'Nothing readable came out of this page – does it pull in its text with JavaScript?'
 		);
 	}
 
-	// readability zieht den titel nur aus <title>, das fehlt oder taugt oft nichts
+	// readability takes the title from <title> only, which is often missing or useless
 	const heading = dom.window.document.querySelector('h1')?.textContent?.trim();
 	const title = article?.title?.trim() || heading || null;
 
@@ -31,12 +31,12 @@ export async function fetchArticle(url: string): Promise<Article> {
 	}).catch(() => null);
 
 	if (!response?.ok) {
-		throw new UnsupportedSourceError('Die Seite ist nicht erreichbar.');
+		throw new UnsupportedSourceError('The page cannot be reached.');
 	}
 
 	const type = response.headers.get('content-type') ?? '';
 	if (!type.includes('html') && !type.includes('text')) {
-		throw new UnsupportedSourceError(`Dieser Inhaltstyp wird nicht unterstützt (${type}).`);
+		throw new UnsupportedSourceError(`This content type is not supported (${type}).`);
 	}
 
 	return extractHtml(await response.text(), url);

@@ -9,7 +9,7 @@
 
 {$API_DOMAIN} {
 	reverse_proxy api:3001 {
-		# sse darf nicht gepuffert werden, sonst kommt die antwort stockend an
+		# sse must not be buffered, otherwise the answer arrives in stutters
 		flush_interval -1
 	}
 	encode zstd gzip
@@ -19,7 +19,7 @@
 	reverse_proxy kong:8000
 	encode zstd gzip
 
-	# das studio ist nicht fuer die oeffentlichkeit gedacht
+	# the studio is not meant to be public
 	@studio path /studio* /project*
 	respond @studio 404
 }

@@ -30,7 +30,7 @@ export class IngestionService implements OnApplicationBootstrap {
 		@Inject(LLM_PROVIDER) private readonly llm: LlmProvider
 	) {}
 
-	// in-process verarbeitung ueberlebt keinen neustart, sonst haengen quellen ewig auf processing
+	// in-process work does not survive a restart, otherwise sources hang on processing forever
 	async onApplicationBootstrap() {
 		const cutoff = new Date(Date.now() - STALE_AFTER_MINUTES * 60_000).toISOString();
 		const { data } = await this.supabase
@@ -38,16 +38,16 @@ export class IngestionService implements OnApplicationBootstrap {
 			.from('sources')
 			.update({
 				status: 'error',
-				error_message: 'Verarbeitung wurde durch einen Neustart unterbrochen.'
+				error_message: 'Processing was cut short by a restart.'
 			})
 			.eq('status', 'processing')
 			.lt('processing_started_at', cutoff)
 			.select('id');
 
-		if (data?.length) this.log.warn(`${data.length} unterbrochene Quelle(n) zurückgesetzt`);
+		if (data?.length) this.log.warn(`${data.length} interrupted source(s) reset`);
 	}
 
-	// laeuft absichtlich ohne await im controller, der status steht in der db
+	// runs without await in the controller on purpose, the status lives in the db
 	async run(sourceId: string): Promise<void> {
 		const db = this.supabase.asAdmin();
 
@@ -81,7 +81,7 @@ export class IngestionService implements OnApplicationBootstrap {
 			const message =
 				error instanceof UnsupportedSourceError
 					? error.message
-					: 'Die Quelle konnte nicht verarbeitet werden.';
+					: 'The source could not be processed.';
 
 			if (!(error instanceof UnsupportedSourceError)) this.log.error(error);
 			await db
@@ -93,17 +93,17 @@ export class IngestionService implements OnApplicationBootstrap {
 
 	private async extract(db: SupabaseClient, source: SourceRow): Promise<Extracted> {
 		if (source.kind === 'url') {
-			if (!source.source_url) throw new UnsupportedSourceError('Keine Adresse hinterlegt.');
+			if (!source.source_url) throw new UnsupportedSourceError('No address on file.');
 			return fetchArticle(source.source_url);
 		}
 
-		// txt und md kommen entweder als eingefuegter text oder als datei-upload
+		// txt and md arrive either as pasted text or as a file upload
 		if (source.kind === 'text' || source.kind === 'markdown') {
 			const raw = source.storage_path
 				? (await this.download(db, source)).toString('utf8')
 				: (source.metadata?.rawText ?? '');
 
-			if (!raw.trim()) throw new UnsupportedSourceError('Die Quelle enthält keinen Text.');
+			if (!raw.trim()) throw new UnsupportedSourceError('The source holds no text.');
 			return { text: raw, pageStarts: [] };
 		}
 
@@ -111,21 +111,21 @@ export class IngestionService implements OnApplicationBootstrap {
 		if (source.kind === 'pdf') return extractPdf(buffer);
 		if (source.kind === 'docx') return extractDocx(buffer);
 
-		throw new UnsupportedSourceError('Dieser Dateityp wird nicht unterstützt.');
+		throw new UnsupportedSourceError('This file type is not supported.');
 	}
 
 	private async download(db: SupabaseClient, source: SourceRow): Promise<Buffer> {
-		if (!source.storage_path) throw new UnsupportedSourceError('Datei fehlt.');
+		if (!source.storage_path) throw new UnsupportedSourceError('File is missing.');
 
 		const { data, error } = await db.storage.from('sources').download(source.storage_path);
-		if (error || !data) throw new UnsupportedSourceError('Die Datei konnte nicht geladen werden.');
+		if (error || !data) throw new UnsupportedSourceError('The file could not be loaded.');
 
 		return Buffer.from(await data.arrayBuffer());
 	}
 
 	private async store(db: SupabaseClient, source: SourceRow, extracted: Extracted) {
 		const chunks = chunk(extracted.text);
-		if (chunks.length === 0) throw new UnsupportedSourceError('Die Quelle enthält keinen Text.');
+		if (chunks.length === 0) throw new UnsupportedSourceError('The source holds no text.');
 
 		await db.from('chunks').delete().eq('source_id', source.id);
 
@@ -138,7 +138,7 @@ export class IngestionService implements OnApplicationBootstrap {
 				notebook_id: source.notebook_id,
 				idx: c.idx,
 				content: c.content,
-				// chunks laufen ueber seitengrenzen, die mitte trifft oefter als der anfang
+				// chunks run across page boundaries, the middle hits more often than the start
 				page: pageForOffset(extracted.pageStarts, Math.floor((c.charStart + c.charEnd) / 2)),
 				char_start: c.charStart,
 				char_end: c.charEnd,

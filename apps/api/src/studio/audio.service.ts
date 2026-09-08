@@ -14,15 +14,15 @@ const SPEAKERS: Speaker[] = [
 const MAX_CONTEXT_CHARS = 12000;
 const URL_TTL_SECONDS = 3600;
 
-const SCRIPT_PROMPT = `Schreibe daraus ein kurzes Gespräch zwischen Anna und Jonas, das die Quellen für jemanden zusammenfasst, der sie nicht gelesen hat.
+const SCRIPT_PROMPT = `Turn this into a short conversation between Anna and Jonas that sums up the sources for someone who has not read them.
 
-Regeln:
-- Anna führt durch das Gespräch und stellt die Fragen, Jonas erklärt.
-- Beginne mit einem Satz, worum es geht. Ende mit einem Fazit.
-- Zwölf bis achtzehn Wortbeiträge, jeder höchstens drei Sätze.
-- Gesprochene Sprache, keine Aufzählungen, keine Überschriften, keine Regieanweisungen.
-- Nur Inhalte aus den Quellen. Zahlen und Fristen wörtlich übernehmen.
-- Jede Zeile beginnt mit "Anna:" oder "Jonas:" und sonst nichts.`;
+Rules:
+- Anna leads the conversation and asks the questions, Jonas explains.
+- Open with one sentence on what this is about. Close with a takeaway.
+- Twelve to eighteen turns, each at most three sentences.
+- Spoken language, no bullet points, no headings, no stage directions.
+- Only what the sources say. Carry over numbers and deadlines verbatim.
+- Every line starts with "Anna:" or "Jonas:" and nothing else.`;
 
 type Row = {
 	id: string;
@@ -80,7 +80,7 @@ export class AudioService {
 
 		if (error) throw new InternalServerErrorException(error.message);
 
-		// tts dauert je nach laenge bis zu einer minute, der status steht in der db
+		// tts takes up to a minute depending on length, the status lives in the db
 		void this.run(user, notebookId, (data as Row).id);
 		return this.toOverview(user, data as Row);
 	}
@@ -90,14 +90,14 @@ export class AudioService {
 
 		try {
 			const context = await this.context(user, notebookId);
-			if (!context) throw new Error('Für dieses Notizbuch gibt es noch keine Quellen.');
+			if (!context) throw new Error('This notebook has no sources yet.');
 
 			const script = clean(
 				await this.llm.complete(`${context}\n\n${SCRIPT_PROMPT}`, {
-					system: 'Du schreibst Dialoge ausschließlich auf Basis der übergebenen Quellen.'
+					system: 'You write dialogue from the given sources and nothing else.'
 				})
 			);
-			if (!script) throw new Error('Das Modell hat kein verwertbares Skript geliefert.');
+			if (!script) throw new Error('The model returned no usable script.');
 
 			const { pcm, sampleRate } = await this.llm.speak(script, SPEAKERS);
 			const path = `${user.id}/${notebookId}/${randomUUID()}.wav`;
@@ -124,7 +124,7 @@ export class AudioService {
 				.update({
 					status: 'error',
 					error_message:
-						error instanceof Error ? error.message : 'Die Zusammenfassung ließ sich nicht erzeugen.'
+						error instanceof Error ? error.message : 'The overview could not be generated.'
 				})
 				.eq('id', id);
 		}
@@ -173,7 +173,7 @@ export class AudioService {
 	}
 }
 
-// modelle schieben gern eine einleitung oder code-fences davor
+// models like to push an intro or code fences in front
 export function clean(raw: string): string {
 	return raw
 		.replace(/```[a-z]*\n?/gi, '')

@@ -25,11 +25,11 @@ create table sources (
 	status source_status not null default 'pending',
 	error_message text,
 
-	-- der viewer highlightet ueber char-offsets, die nur zu genau diesem text passen
+	-- the viewer highlights via char offsets that only line up with exactly this text
 	extracted_text text,
 	char_count int,
 
-	-- ohne das bleiben quellen nach einem neustart fuer immer auf processing
+	-- without this, sources stay on processing forever after a restart
 	processing_started_at timestamptz,
 
 	metadata jsonb not null default '{}',
@@ -48,11 +48,12 @@ create table chunks (
 	char_start int not null,
 	char_end int not null,
 
-	-- quellen sind gemischt deutsch/englisch, also stemming pro chunk statt global
+	-- sources are mixed german/english; per-chunk stemming hangs on this column,
+	-- but nothing sets it yet, so every row uses the default
 	lang regconfig not null default 'german',
 	fts tsvector generated always as (to_tsvector(lang, content)) stored,
 
-	-- hnsw kann max 2000 dims, gemini liefert per default 3072
+	-- hnsw caps out at 2000 dims, gemini returns 3072 by default
 	embedding vector(768)
 );
 
@@ -129,14 +130,14 @@ create policy "own messages" on messages
 		)
 	);
 
--- realtime verwirft events still, wenn die zeile per rls nicht lesbar ist
+-- realtime drops events silently when rls hides the row
 alter publication supabase_realtime add table sources;
 
 insert into storage.buckets (id, name, public, file_size_limit)
 values ('sources', 'sources', false, 26214400)
 on conflict (id) do nothing;
 
--- pfad ist immer <user_id>/<source_id>, damit die policy ohne join auskommt
+-- path is always <user_id>/<source_id> so the policy needs no join
 create policy "own files read" on storage.objects
 	for select using (
 		bucket_id = 'sources' and (storage.foldername(name))[1] = auth.uid()::text

@@ -10,15 +10,15 @@ import { MindMap } from './mind-map';
 type Props = { notebookId: string; reloadKey: number; hasSources: boolean };
 
 const ACTIONS: { kind: StudioKind; label: string; icon: typeof FileText; hint: string }[] = [
-	{ kind: 'briefing', label: 'Briefing', icon: Sparkles, hint: 'Kurzüberblick über alle Quellen' },
-	{ kind: 'faq', label: 'Fragen', icon: HelpCircle, hint: 'Häufige Fragen mit Antworten' },
+	{ kind: 'briefing', label: 'Briefing', icon: Sparkles, hint: 'Short overview of all sources' },
+	{ kind: 'faq', label: 'FAQ', icon: HelpCircle, hint: 'Common questions with answers' },
 	{
 		kind: 'studyguide',
-		label: 'Lernhilfe',
+		label: 'Study guide',
 		icon: FileText,
-		hint: 'Begriffe und Verständnisfragen'
+		hint: 'Key terms and review questions'
 	},
-	{ kind: 'mindmap', label: 'Mind Map', icon: Network, hint: 'Struktur als Diagramm' }
+	{ kind: 'mindmap', label: 'Mind map', icon: Network, hint: 'Structure as a diagram' }
 ];
 
 export function StudioPanel({ notebookId, reloadKey, hasSources }: Props) {
@@ -46,7 +46,7 @@ export function StudioPanel({ notebookId, reloadKey, hasSources }: Props) {
 			if (kind === 'mindmap' && result.tree) setTree(result.tree);
 			else await load();
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Erzeugen fehlgeschlagen');
+			setError(err instanceof Error ? err.message : 'Generating failed');
 		} finally {
 			setBusy(null);
 		}
@@ -64,11 +64,11 @@ export function StudioPanel({ notebookId, reloadKey, hasSources }: Props) {
 						key={kind}
 						onClick={() => generate(kind)}
 						disabled={busy !== null || !hasSources}
-						title={hasSources ? hint : 'Zuerst eine Quelle hinzufügen'}
+						title={hasSources ? hint : 'Add a source first'}
 						className="flex flex-col items-start gap-1.5 rounded-xl border border-[var(--color-line)] bg-[var(--color-surface)] p-3 text-left transition hover:border-[var(--color-line-strong)] hover:shadow-[var(--shadow-card)] disabled:opacity-40 disabled:hover:border-[var(--color-line)] disabled:hover:shadow-none"
 					>
 						<Icon className="h-4 w-4 text-[var(--color-accent)]" />
-						<span className="text-xs font-medium">{busy === kind ? 'läuft…' : label}</span>
+						<span className="text-xs font-medium">{busy === kind ? 'working…' : label}</span>
 					</button>
 				))}
 			</div>
@@ -86,13 +86,13 @@ export function StudioPanel({ notebookId, reloadKey, hasSources }: Props) {
 					<div className="animate-rise mb-5">
 						<div className="mb-2 flex items-center justify-between">
 							<h3 className="text-xs font-medium uppercase tracking-wide text-[var(--color-muted)]">
-								Mind Map
+								Mind map
 							</h3>
 							<button
 								onClick={() => setTree(null)}
 								className="text-xs text-[var(--color-faint)] hover:text-[var(--color-fg)]"
 							>
-								ausblenden
+								hide
 							</button>
 						</div>
 						<MindMap tree={tree} />
@@ -100,12 +100,12 @@ export function StudioPanel({ notebookId, reloadKey, hasSources }: Props) {
 				)}
 
 				<h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--color-muted)]">
-					Notizen {notes && notes.length > 0 && `(${notes.length})`}
+					Notes {notes && notes.length > 0 && `(${notes.length})`}
 				</h3>
 
 				{notes?.length === 0 && (
 					<p className="rounded-xl border border-dashed border-[var(--color-line)] px-4 py-8 text-center text-xs leading-relaxed text-[var(--color-muted)]">
-						Noch keine Notizen. Speichere eine Antwort aus dem Chat oder erzeuge oben ein Briefing.
+						No notes yet. Save an answer from the chat or generate a briefing above.
 					</p>
 				)}
 
@@ -122,14 +122,14 @@ export function StudioPanel({ notebookId, reloadKey, hasSources }: Props) {
 										onClick={() => setOpen(expanded ? null : note.id)}
 										className="flex-1 text-left text-xs font-medium"
 									>
-										{note.title ?? (note.origin === 'chat' ? 'Aus dem Chat' : 'Notiz')}
+										{note.title ?? (note.origin === 'chat' ? 'From the chat' : 'Note')}
 									</button>
 									<button
 										onClick={async () => {
 											await api(`/notes/${note.id}`, { method: 'DELETE' });
 											await load();
 										}}
-										aria-label="Notiz löschen"
+										aria-label="Delete note"
 										className="rounded p-1 text-[var(--color-faint)] opacity-0 transition hover:bg-[var(--color-panel)] hover:text-[var(--color-bad)] group-hover:opacity-100"
 									>
 										<Trash2 className="h-3 w-3" />
@@ -147,7 +147,7 @@ export function StudioPanel({ notebookId, reloadKey, hasSources }: Props) {
 										onClick={() => setOpen(expanded ? null : note.id)}
 										className="mt-1.5 text-[11px] text-[var(--color-accent)]"
 									>
-										{expanded ? 'weniger' : 'mehr anzeigen'}
+										{expanded ? 'show less' : 'show more'}
 									</button>
 								)}
 							</li>

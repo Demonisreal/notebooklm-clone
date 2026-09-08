@@ -56,6 +56,6 @@ volumes:
 
 networks:
   notebooklm:
-  # supabase bringt sein eigenes compose mit, wir haengen uns an dessen netz
+  # supabase ships its own compose, we attach to its network
   supabase_default:
     external: true

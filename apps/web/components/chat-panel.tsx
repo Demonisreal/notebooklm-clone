@@ -22,9 +22,9 @@ type Props = {
 };
 
 const SUGGESTIONS = [
-	'Worum geht es in meinen Quellen?',
-	'Was sind die wichtigsten Punkte?',
-	'Welche Fristen werden genannt?'
+	'What are my sources about?',
+	'What are the key points?',
+	'Which deadlines are mentioned?'
 ];
 
 export function ChatPanel({ notebookId, sourceIds, hasSources, onCite, onSaveNote }: Props) {
@@ -69,7 +69,7 @@ export function ChatPanel({ notebookId, sourceIds, hasSources, onCite, onSaveNot
 					text += event.text;
 					setPartial(text);
 				}
-				// der stream liefert rohtext, hier kommt die bereinigte fassung
+				// the stream carries raw text, the cleaned up version arrives here
 				if (event.type === 'citations') {
 					text = event.text;
 					citations = event.items;
@@ -77,7 +77,7 @@ export function ChatPanel({ notebookId, sourceIds, hasSources, onCite, onSaveNot
 				if (event.type === 'error') text = event.message;
 			}
 		} catch {
-			if (!controller.signal.aborted) text ||= 'Die Verbindung wurde unterbrochen.';
+			if (!controller.signal.aborted) text ||= 'The connection dropped.';
 		}
 
 		if (text) {
@@ -111,12 +111,12 @@ export function ChatPanel({ notebookId, sourceIds, hasSources, onCite, onSaveNot
 					{empty && (
 						<div className="animate-rise pb-16 text-center">
 							<h2 className="text-balance text-xl font-semibold">
-								{hasSources ? 'Stell eine Frage zu deinen Quellen' : 'Lade zuerst eine Quelle hoch'}
+								{hasSources ? 'Ask a question about your sources' : 'Upload a source first'}
 							</h2>
 							<p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-[var(--color-muted)]">
 								{hasSources
-									? 'Antworten stützen sich ausschließlich auf deine Quellen. Jede Aussage bekommt einen Beleg, der zurück an die Fundstelle führt.'
-									: 'Links kannst du ein PDF hochladen, eine Webseite hinzufügen oder Text einfügen.'}
+									? 'Answers draw on your sources alone. Every claim gets a citation that leads back to the passage it came from.'
+									: 'On the left you can upload a PDF, add a web page or paste in text.'}
 							</p>
 
 							{hasSources && (
@@ -188,7 +188,7 @@ export function ChatPanel({ notebookId, sourceIds, hasSources, onCite, onSaveNot
 						<textarea
 							value={draft}
 							rows={1}
-							placeholder={hasSources ? 'Frage stellen…' : 'Erst eine Quelle hinzufügen'}
+							placeholder={hasSources ? 'Ask a question…' : 'Add a source first'}
 							disabled={!hasSources}
 							onChange={(e) => setDraft(e.target.value)}
 							onKeyDown={(e) => {
@@ -204,7 +204,7 @@ export function ChatPanel({ notebookId, sourceIds, hasSources, onCite, onSaveNot
 							<button
 								type="button"
 								onClick={() => abort.current?.abort()}
-								title="Antwort stoppen"
+								title="Stop generating"
 								className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-[var(--color-line)] transition hover:bg-[var(--color-panel)]"
 							>
 								<Square className="h-3.5 w-3.5" />
@@ -213,7 +213,7 @@ export function ChatPanel({ notebookId, sourceIds, hasSources, onCite, onSaveNot
 							<button
 								type="submit"
 								disabled={!draft.trim()}
-								title="Senden"
+								title="Send"
 								className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--color-accent)] text-[var(--color-accent-fg)] transition hover:bg-[var(--color-accent-hover)] disabled:opacity-30"
 							>
 								<ArrowUp className="h-4 w-4" />
@@ -223,8 +223,8 @@ export function ChatPanel({ notebookId, sourceIds, hasSources, onCite, onSaveNot
 
 					<p className="mt-2 text-center text-[11px] text-[var(--color-faint)]">
 						{sourceIds.length > 0
-							? `Durchsucht ${sourceIds.length} ausgewählte ${sourceIds.length === 1 ? 'Quelle' : 'Quellen'}`
-							: 'Durchsucht alle Quellen · Enter sendet, Umschalt+Enter für eine neue Zeile'}
+							? `Searching ${sourceIds.length} selected ${sourceIds.length === 1 ? 'source' : 'sources'}`
+							: 'Searching all sources · Enter sends, Shift+Enter for a new line'}
 					</p>
 				</form>
 			</div>
@@ -263,7 +263,7 @@ function Bubble({
 			className="ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 animate-pulse bg-[var(--color-accent)]"
 		/>
 	);
-	// vor dem ersten delta ist noch kein block da, an den der cursor koennte
+	// before the first delta there is no block for the cursor to hang on
 	const body =
 		pending && last
 			? [...blocks.slice(0, -1), cloneElement(last, undefined, last.props.children, cursor)]
@@ -271,7 +271,7 @@ function Bubble({
 				? [cursor]
 				: blocks;
 
-	// ein <ul> darf nicht in einem <p> stehen, darum div statt p
+	// a <ul> must not sit inside a <p>, hence div instead of p
 	return (
 		<div className="animate-rise group mb-8">
 			<div className="space-y-1.5 leading-[1.75]">{body}</div>
@@ -280,8 +280,8 @@ function Bubble({
 				<div className="mt-3 flex items-center gap-3">
 					{message.citations.length > 0 && (
 						<span className="text-xs text-[var(--color-faint)]">
-							{message.citations.length} {message.citations.length === 1 ? 'Beleg' : 'Belege'} · zum
-							Nachlesen anklicken
+							{message.citations.length} {message.citations.length === 1 ? 'citation' : 'citations'}{' '}
+							· click to open the passage
 						</span>
 					)}
 
@@ -295,7 +295,7 @@ function Bubble({
 						)}
 					>
 						<BookmarkPlus className="h-3.5 w-3.5" />
-						{saved ? 'Als Notiz gespeichert' : 'Als Notiz speichern'}
+						{saved ? 'Saved as note' : 'Save as note'}
 					</button>
 				</div>
 			)}
@@ -323,7 +323,7 @@ function renderInline(text: string, citations: Citation[], onCite: (c: Citation)
 			<button
 				key={i}
 				onClick={() => onCite(citation)}
-				title={`${citation.sourceTitle}${citation.page ? `, Seite ${citation.page}` : ''}`}
+				title={`${citation.sourceTitle}${citation.page ? `, page ${citation.page}` : ''}`}
 				className="mx-0.5 inline-flex h-[18px] min-w-[18px] translate-y-[-1px] items-center justify-center rounded-md bg-[var(--color-accent-soft)] px-1 align-middle text-[11px] font-semibold text-[var(--color-accent)] transition hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-fg)]"
 			>
 				{citation.n}
