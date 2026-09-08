@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { DemoWriteGuard } from './auth/demo-write.guard';
 import { JwtGuard } from './auth/jwt.guard';
 import { loadConfig } from './config';
 import { LlmModule } from './llm/llm.module';
@@ -28,6 +29,10 @@ import { SupabaseModule } from './supabase/supabase.module';
 		NotesModule,
 		StudioModule
 	],
-	providers: [{ provide: APP_GUARD, useClass: JwtGuard }]
+	// reihenfolge zaehlt: erst der JwtGuard, der request.user setzt
+	providers: [
+		{ provide: APP_GUARD, useClass: JwtGuard },
+		{ provide: APP_GUARD, useClass: DemoWriteGuard }
+	]
 })
 export class AppModule {}
