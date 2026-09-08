@@ -21,7 +21,7 @@ export class DemoWriteGuard implements CanActivate {
 		private readonly reflector: Reflector,
 		config: ConfigService
 	) {
-		// ohne demo-konto greift der guard nirgends, lokal soll nichts anders laufen
+		// without a demo account the guard never fires, nothing should differ locally
 		this.demoEmail = config.get<string>('DEMO_USER_EMAIL')?.toLowerCase() ?? null;
 	}
 
@@ -38,7 +38,7 @@ export class DemoWriteGuard implements CanActivate {
 		if (user?.email?.toLowerCase() !== this.demoEmail) return true;
 
 		throw new ForbiddenException(
-			'Der Demo-Zugang ist schreibgeschützt: Quellen und Notizbücher lassen sich hier nicht ändern. Chat und Studio funktionieren normal.'
+			'The demo access is read only: sources and notebooks cannot be changed here. Chat and studio work as usual.'
 		);
 	}
 }

@@ -27,7 +27,7 @@ export function MindMap({ tree }: { tree: MindMapNode }) {
 	);
 }
 
-// react flow erwartet absolute positionen, also den baum einmal selbst auslegen
+// react flow expects absolute positions, so lay the tree out ourselves
 function layout(tree: MindMapNode) {
 	const nodes: Node[] = [];
 	const edges: Edge[] = [];
@@ -37,7 +37,7 @@ function layout(tree: MindMapNode) {
 		const id = `n${nodes.length}`;
 		const children = node.children ?? [];
 
-		// blätter bekommen eine eigene zeile, eltern sitzen mittig zu ihren kindern
+		// leaves get a row of their own, parents sit centred on their children
 		const firstRow = row;
 		if (children.length === 0) row += 1;
 

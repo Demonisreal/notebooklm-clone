@@ -11,7 +11,7 @@ export default function NotebooksPage() {
 	const [notebooks, setNotebooks] = useState<Notebook[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [creating, setCreating] = useState(false);
-	// zweistufig statt confirm(), damit kein browser-dialog den ablauf blockiert
+	// two steps instead of confirm(), so no browser dialog blocks the flow
 	const [confirming, setConfirming] = useState<string | null>(null);
 
 	const load = useCallback(async () => {
@@ -22,7 +22,7 @@ export default function NotebooksPage() {
 				router.replace('/login');
 				return;
 			}
-			setError(err instanceof Error ? err.message : 'Unbekannter Fehler');
+			setError(err instanceof Error ? err.message : 'Unknown error');
 		}
 	}, [router]);
 
@@ -35,11 +35,11 @@ export default function NotebooksPage() {
 		try {
 			const created = await api<Notebook>('/notebooks', {
 				method: 'POST',
-				body: JSON.stringify({ title: 'Neues Notizbuch' })
+				body: JSON.stringify({ title: 'New notebook' })
 			});
 			router.push(`/notebooks/${created.id}`);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Anlegen fehlgeschlagen');
+			setError(err instanceof Error ? err.message : 'Could not create the notebook');
 			setCreating(false);
 		}
 	}
@@ -50,7 +50,7 @@ export default function NotebooksPage() {
 			await api(`/notebooks/${id}`, { method: 'DELETE' });
 			await load();
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Löschen fehlgeschlagen');
+			setError(err instanceof Error ? err.message : 'Could not delete the notebook');
 		}
 	}
 
@@ -63,12 +63,12 @@ export default function NotebooksPage() {
 		<div className="min-h-screen">
 			<header className="bg-[var(--color-bg)]/85 sticky top-0 z-10 border-b border-[var(--color-line)] backdrop-blur">
 				<div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-					<span className="font-medium">Notizbuch</span>
+					<span className="font-medium">Notebook</span>
 					<button
 						onClick={logout}
 						className="rounded-lg px-3 py-1.5 text-sm text-[var(--color-muted)] transition hover:bg-[var(--color-panel)] hover:text-[var(--color-fg)]"
 					>
-						Abmelden
+						Sign out
 					</button>
 				</div>
 			</header>
@@ -76,7 +76,7 @@ export default function NotebooksPage() {
 			<main className="mx-auto max-w-5xl px-6 py-12">
 				<div className="flex flex-wrap items-end justify-between gap-4">
 					<div>
-						<h1 className="text-3xl font-semibold">Meine Notizbücher</h1>
+						<h1 className="text-3xl font-semibold">My notebooks</h1>
 						<p className="mt-1.5 text-[var(--color-muted)]">{summary(notebooks)}</p>
 					</div>
 
@@ -85,7 +85,7 @@ export default function NotebooksPage() {
 						disabled={creating}
 						className="rounded-xl bg-[var(--color-accent)] px-4 py-2.5 text-sm font-medium text-[var(--color-accent-fg)] shadow-[var(--shadow-card)] transition hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
 					>
-						{creating ? 'Wird angelegt…' : 'Neues Notizbuch'}
+						{creating ? 'Creating…' : 'New notebook'}
 					</button>
 				</div>
 
@@ -109,15 +109,15 @@ export default function NotebooksPage() {
 				{notebooks?.length === 0 && (
 					<div className="animate-rise bg-[var(--color-panel)]/50 mt-10 rounded-[var(--radius-panel)] border border-dashed border-[var(--color-line-strong)] px-8 py-20 text-center">
 						<span className="text-4xl">📓</span>
-						<p className="mt-4 text-lg font-medium">Noch keine Notizbücher</p>
+						<p className="mt-4 text-lg font-medium">No notebooks yet</p>
 						<p className="mx-auto mt-1.5 max-w-sm text-sm text-[var(--color-muted)]">
-							Leg eines an, lade ein PDF hoch und stelle die erste Frage dazu.
+							Create one, upload a PDF and ask your first question about it.
 						</p>
 						<button
 							onClick={create}
 							className="mt-6 rounded-xl bg-[var(--color-accent)] px-4 py-2.5 text-sm font-medium text-[var(--color-accent-fg)] transition hover:bg-[var(--color-accent-hover)]"
 						>
-							Erstes Notizbuch anlegen
+							Create your first notebook
 						</button>
 					</div>
 				)}
@@ -141,10 +141,10 @@ export default function NotebooksPage() {
 
 								<p className="mt-1 text-sm text-[var(--color-muted)]">
 									{notebook.sourceCount === 0
-										? 'Noch keine Quellen'
-										: `${notebook.sourceCount} ${notebook.sourceCount === 1 ? 'Quelle' : 'Quellen'}`}
+										? 'No sources yet'
+										: `${notebook.sourceCount} ${notebook.sourceCount === 1 ? 'source' : 'sources'}`}
 									<span className="mx-1.5 text-[var(--color-faint)]">·</span>
-									{new Date(notebook.updatedAt).toLocaleDateString('de-DE', {
+									{new Date(notebook.updatedAt).toLocaleDateString('en-US', {
 										day: 'numeric',
 										month: 'short'
 									})}
@@ -158,22 +158,22 @@ export default function NotebooksPage() {
 											onClick={() => remove(notebook.id)}
 											className="rounded-md bg-[var(--color-bad)] px-2 py-1 text-xs font-medium text-white"
 										>
-											Löschen
+											Delete
 										</button>
 										<button
 											onClick={() => setConfirming(null)}
 											className="rounded-md px-2 py-1 text-xs text-[var(--color-muted)] hover:bg-[var(--color-panel)]"
 										>
-											Abbrechen
+											Cancel
 										</button>
 									</div>
 								) : (
 									<button
 										onClick={() => setConfirming(notebook.id)}
-										aria-label={`${notebook.title} löschen`}
+										aria-label={`Delete ${notebook.title}`}
 										className="rounded-lg px-2 py-1 text-xs text-[var(--color-faint)] opacity-0 transition hover:bg-[var(--color-panel)] hover:text-[var(--color-bad)] focus-visible:opacity-100 group-hover:opacity-100"
 									>
-										Löschen
+										Delete
 									</button>
 								)}
 							</div>
@@ -186,12 +186,12 @@ export default function NotebooksPage() {
 }
 
 function summary(notebooks: Notebook[] | null): string {
-	if (!notebooks) return 'Wird geladen…';
-	if (notebooks.length === 0) return 'Leg dein erstes Notizbuch an.';
+	if (!notebooks) return 'Loading…';
+	if (notebooks.length === 0) return 'Create your first notebook.';
 
 	const sources = notebooks.reduce((sum, n) => sum + n.sourceCount, 0);
-	const books = `${notebooks.length} ${notebooks.length === 1 ? 'Notizbuch' : 'Notizbücher'}`;
+	const books = `${notebooks.length} ${notebooks.length === 1 ? 'notebook' : 'notebooks'}`;
 	if (sources === 0) return books;
 
-	return `${books} · ${sources} ${sources === 1 ? 'Quelle' : 'Quellen'} insgesamt`;
+	return `${books} · ${sources} ${sources === 1 ? 'source' : 'sources'} in total`;
 }

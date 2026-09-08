@@ -5,42 +5,42 @@ import { EMBEDDING_DIMENSIONS, normalize } from './llm.provider';
 describe('FakeProvider', () => {
 	const provider = new FakeProvider();
 
-	it('liefert vektoren in der dimension, die auch in der db steht', async () => {
-		const [vector] = await provider.embed(['irgendein text']);
+	it('returns vectors in the dimension the db expects', async () => {
+		const [vector] = await provider.embed(['some text']);
 		expect(vector).toHaveLength(EMBEDDING_DIMENSIONS);
 	});
 
-	it('ist deterministisch, sonst waeren tests nicht reproduzierbar', async () => {
-		const [a] = await provider.embed(['gleicher text']);
-		const [b] = await provider.embed(['gleicher text']);
+	it('is deterministic, otherwise tests would not be reproducible', async () => {
+		const [a] = await provider.embed(['same text']);
+		const [b] = await provider.embed(['same text']);
 		expect(a).toEqual(b);
 	});
 
-	it('unterscheidet verschiedene texte', async () => {
-		const [a] = await provider.embed(['text eins']);
-		const [b] = await provider.embed(['text zwei']);
+	it('tells different texts apart', async () => {
+		const [a] = await provider.embed(['text one']);
+		const [b] = await provider.embed(['text two']);
 		expect(a).not.toEqual(b);
 	});
 
-	it('normalisiert, weil cosine-similarity sonst falsch rechnet', async () => {
-		const [vector] = await provider.embed(['irgendein text']);
+	it('normalizes, because cosine similarity would be off otherwise', async () => {
+		const [vector] = await provider.embed(['some text']);
 		const length = Math.sqrt(vector.reduce((sum, v) => sum + v * v, 0));
 		expect(length).toBeCloseTo(1, 10);
 	});
 
-	it('streamt zitate, wenn kontextbloecke im prompt stehen', async () => {
-		const prompt = '[1] Erster Block\n[2] Zweiter Block\n\nFrage: worum geht es?';
+	it('streams citations when the prompt carries context blocks', async () => {
+		const prompt = '[1] First block\n[2] Second block\n\nQuestion: what is this about?';
 		const answer = await provider.complete(prompt);
 		expect(answer).toContain('[1]');
 		expect(answer).toContain('[2]');
 	});
 
-	it('sagt ohne kontext, dass die quellen nichts hergeben', async () => {
-		const answer = await provider.complete('Frage ohne kontext');
-		expect(answer).toContain('nichts');
+	it('says without context that the sources have nothing to give', async () => {
+		const answer = await provider.complete('Question without context');
+		expect(answer).toContain('nothing');
 	});
 
-	it('bricht bei abort ab', async () => {
+	it('stops on abort', async () => {
 		const controller = new AbortController();
 		controller.abort();
 
@@ -53,11 +53,11 @@ describe('FakeProvider', () => {
 });
 
 describe('normalize', () => {
-	it('macht aus einem vektor die laenge 1', () => {
+	it('scales a vector to length 1', () => {
 		expect(normalize([3, 4])).toEqual([0.6, 0.8]);
 	});
 
-	it('laesst den nullvektor in ruhe statt durch null zu teilen', () => {
+	it('leaves the zero vector alone instead of dividing by zero', () => {
 		expect(normalize([0, 0])).toEqual([0, 0]);
 	});
 });

@@ -1,4 +1,4 @@
-// vektoren aus einem anderen modell liegen in einem anderen raum
+// vectors from a different model live in a different space
 import { createClient } from '@supabase/supabase-js';
 
 const SUPA = process.env.SUPABASE_URL ?? 'http://127.0.0.1:54321';
@@ -8,7 +8,7 @@ const EMAIL = process.env.DEMO_EMAIL ?? 'demo@notebook.local';
 const PASSWORD = process.env.DEMO_PASSWORD;
 
 if (!SECRET || !PASSWORD) {
-	console.error('SUPABASE_SECRET_KEY und DEMO_PASSWORD müssen gesetzt sein');
+	console.error('SUPABASE_SECRET_KEY and DEMO_PASSWORD must be set');
 	process.exit(1);
 }
 
@@ -19,7 +19,7 @@ const session = await fetch(`${SUPA}/auth/v1/token?grant_type=password`, {
 }).then((r) => r.json());
 
 if (!session.access_token) {
-	console.error('Anmeldung fehlgeschlagen — stimmen DEMO_EMAIL und DEMO_PASSWORD?');
+	console.error('Sign-in failed — are DEMO_EMAIL and DEMO_PASSWORD correct?');
 	process.exit(1);
 }
 
@@ -28,30 +28,30 @@ const admin = createClient(SUPA, SECRET, { auth: { persistSession: false } });
 
 const { data: sources } = await admin.from('sources').select('id, title, notebook_id');
 if (!sources?.length) {
-	console.log('Keine Quellen vorhanden.');
+	console.log('No sources found.');
 	process.exit(0);
 }
 
-console.log(`${sources.length} Quelle(n) werden neu verarbeitet…\n`);
+console.log(`Reprocessing ${sources.length} source(s)…\n`);
 
 for (const source of sources) {
 	const response = await fetch(`${API}/sources/${source.id}/reprocess`, {
 		method: 'POST',
 		headers: auth
 	});
-	console.log(`  ${response.ok ? 'gestartet' : 'FEHLER'}  ${source.title}`);
+	console.log(`  ${response.ok ? 'started' : 'FAILED'}  ${source.title}`);
 }
 
-console.log('\nWarte auf Abschluss…');
+console.log('\nWaiting for completion…');
 
 for (let i = 0; i < 120; i++) {
 	await new Promise((r) => setTimeout(r, 2000));
 
 	const { data } = await admin.from('sources').select('status');
-	const offen = data.filter((s) => s.status === 'pending' || s.status === 'processing').length;
-	if (offen === 0) break;
+	const open = data.filter((s) => s.status === 'pending' || s.status === 'processing').length;
+	if (open === 0) break;
 
-	process.stdout.write(`\r  noch ${offen} offen…   `);
+	process.stdout.write(`\r  ${open} still open…   `);
 }
 
 const { data: final } = await admin.from('sources').select('title, status, error_message');

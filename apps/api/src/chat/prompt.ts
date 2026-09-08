@@ -1,31 +1,31 @@
 import type { ContextBlock } from './citations';
 
 export const SYSTEM_PROMPT = [
-	'Du beantwortest Fragen ausschließlich anhand der übergebenen Quellenauszüge.',
-	'Nutze kein Vorwissen. Geben die Auszüge die Antwort nicht her, sage das offen.',
-	'Belege jede inhaltliche Aussage mit der Nummer des Auszugs in eckigen Klammern, etwa [1].',
-	'Mehrere Belege stehen jeweils in eigenen Klammern, also [1][2] und nicht [1, 2].',
-	'Erfinde keine Nummern. Es gibt nur die Auszüge, die dir übergeben wurden.',
-	'Antworte auf Deutsch, sachlich und ohne Floskeln.'
+	'You answer questions from the given source excerpts and nothing else.',
+	'Do not fall back on prior knowledge. Where the excerpts do not carry the answer, say so plainly.',
+	'Back every factual statement with the number of the excerpt in square brackets, such as [1].',
+	'Several references each get their own brackets, so [1][2] and not [1, 2].',
+	'Do not invent numbers. Only the excerpts handed to you exist.',
+	'Answer in the language of the question, factually and without filler.'
 ].join(' ');
 
 export function buildPrompt(question: string, blocks: ContextBlock[]): string {
 	if (blocks.length === 0) {
 		return [
-			'Es wurden keine passenden Auszüge gefunden.',
+			'No matching excerpts were found.',
 			'',
-			`Frage: ${question}`,
+			`Question: ${question}`,
 			'',
-			'Antworte, dass die ausgewählten Quellen dazu nichts hergeben.'
+			'Answer that the selected sources have nothing on this.'
 		].join('\n');
 	}
 
 	const context = blocks
 		.map((block, i) => {
-			const location = block.page ? `${block.sourceTitle}, Seite ${block.page}` : block.sourceTitle;
+			const location = block.page ? `${block.sourceTitle}, page ${block.page}` : block.sourceTitle;
 			return `[${i + 1}] (${location})\n${block.content}`;
 		})
 		.join('\n\n');
 
-	return `${context}\n\nFrage: ${question}`;
+	return `${context}\n\nQuestion: ${question}`;
 }

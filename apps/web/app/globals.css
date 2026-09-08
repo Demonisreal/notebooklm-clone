@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 @theme {
-	/* warme, papierartige neutrale statt kaltem grau - passt zu einem notizbuch */
+	/* warm, paper-like neutrals instead of cold grey - fits a notebook */
 	--color-bg: #fbfaf8;
 	--color-surface: #ffffff;
 	--color-panel: #f6f4f1;
@@ -97,7 +97,7 @@ h3 {
 	color: var(--color-fg);
 }
 
-/* schmale, unaufdringliche scrollbalken - der graue standardbalken zerstoert die ruhe */
+/* slim, quiet scrollbars - the default grey bar ruins the calm */
 * {
 	scrollbar-width: thin;
 	scrollbar-color: var(--color-line-strong) transparent;
