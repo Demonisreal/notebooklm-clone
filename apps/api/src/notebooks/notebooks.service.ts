@@ -62,7 +62,7 @@ export class NotebooksService {
 			.maybeSingle();
 
 		if (error) throw new InternalServerErrorException(error.message);
-		if (!data) throw new NotFoundException('Notizbuch nicht gefunden');
+		if (!data) throw new NotFoundException('Notebook not found');
 		return toNotebook(data as Row);
 	}
 

@@ -5,11 +5,11 @@ import { FakeProvider } from '../llm/fake.provider';
 const URL = process.env.SUPABASE_URL ?? 'http://127.0.0.1:54321';
 const KEY = process.env.SUPABASE_SECRET_KEY ?? '';
 
-// die suche lebt in der datenbank, also wird sie auch dort geprueft.
-// ohne konfiguriertes supabase ueberspringen statt rot zu werden
+// the search lives in the database, so that is where it gets checked.
+// without a configured supabase, skip instead of going red
 describe.skipIf(!KEY)('match_chunks', () => {
-	// skipIf ueberspringt nur die tests, der rumpf laeuft trotzdem - ohne key
-	// wuerde createClient hier die ganze datei beim einsammeln umwerfen
+	// skipIf only skips the tests, the body still runs - without a key
+	// createClient would take down the whole file during collection
 	let db: SupabaseClient;
 	const llm = new FakeProvider();
 
@@ -34,13 +34,13 @@ describe.skipIf(!KEY)('match_chunks', () => {
 	beforeAll(async () => {
 		db = createClient(URL, KEY, { auth: { persistSession: false } });
 		await db.from('notebooks').delete().eq('id', notebookId);
-		await db.from('notebooks').insert({ id: notebookId, user_id: userId, title: 'RRF-Test' });
+		await db.from('notebooks').insert({ id: notebookId, user_id: userId, title: 'RRF test' });
 		await db.from('sources').insert([
 			{
 				id: bigSource,
 				notebook_id: notebookId,
 				user_id: userId,
-				title: 'Gross',
+				title: 'Big',
 				kind: 'text',
 				status: 'ready'
 			},
@@ -48,7 +48,7 @@ describe.skipIf(!KEY)('match_chunks', () => {
 				id: smallSource,
 				notebook_id: notebookId,
 				user_id: userId,
-				title: 'Klein',
+				title: 'Small',
 				kind: 'text',
 				status: 'ready'
 			}
@@ -58,15 +58,15 @@ describe.skipIf(!KEY)('match_chunks', () => {
 			source_id: bigSource,
 			notebook_id: notebookId,
 			idx: i,
-			content: `Allgemeiner Fuelltext ueber Ablaeufe und Verwaltung, Abschnitt ${i}`,
+			content: `General filler text about processes and administration, part ${i}`,
 			char_start: i * 80,
 			char_end: i * 80 + 60,
-			lang: 'german'
+			lang: 'english'
 		}));
 
 		const needles = [
-			'Die Kuendigungsfrist betraegt vier Wochen zum Monatsende nach Paragraph 15a',
-			'Das Produkt Zephyr-7 erschien im Maerz'
+			'The notice period is four weeks to the end of the month under section 15a',
+			'The Zephyr-7 product shipped in March'
 		].map((content, i) => ({
 			source_id: smallSource,
 			notebook_id: notebookId,
@@ -74,7 +74,7 @@ describe.skipIf(!KEY)('match_chunks', () => {
 			content,
 			char_start: i * 100,
 			char_end: i * 100 + 80,
-			lang: 'german'
+			lang: 'english'
 		}));
 
 		const rows = [...filler, ...needles];
@@ -84,38 +84,38 @@ describe.skipIf(!KEY)('match_chunks', () => {
 			.insert(rows.map((row, i) => ({ ...row, embedding: JSON.stringify(embeddings[i]) })));
 	}, 60000);
 
-	it('findet einen paragraphen, den reine vektorsuche verfehlen wuerde', async () => {
-		const hits = await search('Paragraph 15a', null, 5);
+	it('finds a clause that pure vector search would miss', async () => {
+		const hits = await search('section 15a', null, 5);
 		expect(hits.some((h) => h.content.includes('15a'))).toBe(true);
 	});
 
-	it('findet trotz mehrerer begriffe in einer natuerlichen frage', async () => {
-		const hits = await search('Was ist die Kuendigungsfrist und wann kam Zephyr-7?', null, 8);
-		expect(hits.some((h) => h.content.includes('Kuendigungsfrist'))).toBe(true);
+	it('copes with several terms in one natural question', async () => {
+		const hits = await search('What is the notice period and when did Zephyr-7 ship?', null, 8);
+		expect(hits.some((h) => h.content.includes('notice period'))).toBe(true);
 		expect(hits.some((h) => h.content.includes('Zephyr-7'))).toBe(true);
 	});
 
-	// ohne hnsw.iterative_scan kaeme hier nichts zurueck: der index liefert
-	// ef_search kandidaten und der filter wirft sie danach alle weg
-	it('liefert treffer, wenn nur die kleine quelle ausgewaehlt ist', async () => {
-		const hits = await search('Garantie', [smallSource], 10);
+	// without hnsw.iterative_scan nothing would come back here: the index hands over
+	// ef_search candidates and the filter throws all of them away afterwards
+	it('returns hits when only the small source is selected', async () => {
+		const hits = await search('warranty', [smallSource], 10);
 		expect(hits.length).toBe(2);
 	});
 
-	it('behandelt ein leeres quellen-array wie keine einschraenkung', async () => {
-		const hits = await search('Verwaltung', [], 5);
+	it('treats an empty source array like no restriction', async () => {
+		const hits = await search('administration', [], 5);
 		expect(hits.length).toBeGreaterThan(0);
 	});
 
-	it('sortiert absteigend nach fusionsscore', async () => {
-		const hits = await search('Kuendigungsfrist', null, 6);
+	it('sorts by fusion score, descending', async () => {
+		const hits = await search('notice period', null, 6);
 		const scores = hits.map((h) => h.score);
 		expect([...scores].sort((a, b) => b - a)).toEqual(scores);
 	});
 
-	it('crasht nicht an sonderzeichen in der frage', async () => {
+	it('does not choke on special characters in the question', async () => {
 		await expect(
-			search("was kostet 'das' & <-> !nicht? Paragraph 15a", null, 5)
+			search("what does 'this' & <-> !not? cost section 15a", null, 5)
 		).resolves.toBeDefined();
 	});
 });

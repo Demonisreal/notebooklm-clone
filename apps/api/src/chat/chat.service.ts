@@ -46,11 +46,11 @@ export class ChatService {
 			}
 		} catch (error) {
 			if (signal.aborted) return;
-			yield { type: 'error', message: 'Das Modell hat die Antwort abgebrochen.' };
+			yield { type: 'error', message: 'The model cut the answer short.' };
 			return;
 		}
 
-		// bei abbruch nichts speichern, sonst steht eine halbe antwort im verlauf
+		// save nothing on abort, otherwise half an answer sits in the history
 		if (signal.aborted) return;
 
 		const { text, citations } = resolveCitations(raw, blocks);
@@ -109,7 +109,7 @@ export class ChatService {
 			.select('id')
 			.single();
 
-		if (error || !data) throw new NotFoundException('Notizbuch nicht gefunden');
+		if (error || !data) throw new NotFoundException('Notebook not found');
 		return data.id as string;
 	}
 

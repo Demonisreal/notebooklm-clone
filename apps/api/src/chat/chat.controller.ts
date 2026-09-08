@@ -23,7 +23,7 @@ export class ChatController {
 			'Content-Type': 'text/event-stream',
 			'Cache-Control': 'no-cache',
 			Connection: 'keep-alive',
-			// proxies puffern sse sonst und der stream kommt stockend an
+			// proxies buffer sse otherwise and the stream arrives in fits and starts
 			'X-Accel-Buffering': 'no'
 		});
 		response.flushHeaders();
@@ -37,7 +37,7 @@ export class ChatController {
 				write(response, event);
 			}
 		} catch (error) {
-			const message = error instanceof Error ? error.message : 'Unerwarteter Fehler';
+			const message = error instanceof Error ? error.message : 'Unexpected error';
 			if (!controller.signal.aborted) write(response, { type: 'error', message });
 		} finally {
 			response.end();

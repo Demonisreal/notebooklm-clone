@@ -5,15 +5,15 @@ import { LLM_PROVIDER, LlmProvider } from '../llm/llm.provider';
 import { NotesService } from '../notes/notes.service';
 import { SupabaseService } from '../supabase/supabase.service';
 
-// gemini flash schafft deutlich mehr, aber lange prompts kosten zeit und quota
+// gemini flash handles far more, but long prompts cost time and quota
 const MAX_CONTEXT_CHARS = 24000;
 
 const INSTRUCTIONS: Record<Exclude<StudioKind, 'mindmap' | 'audio'>, string> = {
 	briefing:
-		'Fasse die Quellen zu einem Briefing zusammen: worum es geht, die wichtigsten Aussagen als Stichpunkte, offene Fragen. Höchstens 400 Wörter.',
-	faq: 'Formuliere sechs bis acht Fragen, die jemand zu diesen Quellen stellen würde, und beantworte sie jeweils in zwei bis drei Sätzen.',
+		'Condense the sources into a briefing: what this is about, the key statements as bullet points, open questions. At most 400 words.',
+	faq: 'Write six to eight questions someone would ask about these sources and answer each of them in two or three sentences.',
 	studyguide:
-		'Erstelle eine Lernhilfe: die zentralen Begriffe mit kurzer Erklärung, danach fünf Verständnisfragen ohne Antworten.'
+		'Put together a study guide: the central terms with a short explanation, then five comprehension questions without answers.'
 };
 
 @Injectable()
@@ -27,13 +27,13 @@ export class StudioService {
 	async generate(user: AuthUser, notebookId: string, kind: Exclude<StudioKind, 'audio'>) {
 		const context = await this.context(user, notebookId);
 		if (!context) {
-			throw new InternalServerErrorException('Für dieses Notizbuch gibt es noch keine Quellen.');
+			throw new InternalServerErrorException('This notebook has no sources yet.');
 		}
 
 		if (kind === 'mindmap') return { kind, tree: await this.mindmap(context) };
 
 		const text = await this.llm.complete(`${context}\n\n${INSTRUCTIONS[kind]}`, {
-			system: 'Du arbeitest ausschließlich mit den übergebenen Quellen und antwortest auf Deutsch.'
+			system: 'You work from the given sources only and answer in their language.'
 		});
 
 		const note = await this.notes.create(user, notebookId, {
@@ -47,8 +47,8 @@ export class StudioService {
 
 	private async mindmap(context: string): Promise<MindMapNode> {
 		const raw = await this.llm.complete(
-			`${context}\n\nErstelle eine Mind Map der Quellen als JSON. Format: {"label": "Thema", "children": [{"label": "Unterthema", "children": []}]}. Höchstens drei Ebenen, nur JSON, kein Fließtext.`,
-			{ system: 'Du antwortest ausschließlich mit gültigem JSON.' }
+			`${context}\n\nDraw a mind map of the sources as JSON. Format: {"label": "Topic", "children": [{"label": "Subtopic", "children": []}]}. At most three levels, JSON only, no prose.`,
+			{ system: 'You answer with valid JSON and nothing else.' }
 		);
 
 		return parseTree(raw);
@@ -78,21 +78,21 @@ export class StudioService {
 
 function labelFor(kind: Exclude<StudioKind, 'audio'>): string {
 	if (kind === 'briefing') return 'Briefing';
-	if (kind === 'faq') return 'Häufige Fragen';
-	return 'Lernhilfe';
+	if (kind === 'faq') return 'FAQ';
+	return 'Study guide';
 }
 
-// modelle verpacken json gern in code-fences oder schreiben text davor
+// models like to wrap json in code fences or write text in front of it
 export function parseTree(raw: string): MindMapNode {
 	const start = raw.indexOf('{');
 	const end = raw.lastIndexOf('}');
-	if (start === -1 || end <= start) return { label: 'Keine Struktur erkannt' };
+	if (start === -1 || end <= start) return { label: 'No structure detected' };
 
 	try {
 		const parsed = JSON.parse(raw.slice(start, end + 1)) as unknown;
-		return normalize(parsed) ?? { label: 'Keine Struktur erkannt' };
+		return normalize(parsed) ?? { label: 'No structure detected' };
 	} catch {
-		return { label: 'Keine Struktur erkannt' };
+		return { label: 'No structure detected' };
 	}
 }
 

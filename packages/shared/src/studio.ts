@@ -3,9 +3,9 @@ export type StudioKind = (typeof studioKinds)[number];
 
 export const studioLabels: Record<StudioKind, string> = {
 	briefing: 'Briefing',
-	faq: 'Häufige Fragen',
-	studyguide: 'Lernhilfe',
-	mindmap: 'Mind Map',
+	faq: 'FAQ',
+	studyguide: 'Study guide',
+	mindmap: 'Mind map',
 	audio: 'Audio'
 };
 
