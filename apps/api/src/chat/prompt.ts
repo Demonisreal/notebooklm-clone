@@ -11,13 +11,7 @@ export const SYSTEM_PROMPT = [
 
 export function buildPrompt(question: string, blocks: ContextBlock[]): string {
 	if (blocks.length === 0) {
-		return [
-			'No matching excerpts were found.',
-			'',
-			`Question: ${question}`,
-			'',
-			'Answer that the selected sources have nothing on this.'
-		].join('\n');
+		return ['No matching excerpts were found.', '', `Question: ${question}`].join('\n');
 	}
 
 	const context = blocks
