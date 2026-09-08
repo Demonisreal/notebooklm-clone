@@ -48,7 +48,7 @@ export function SourcesPanel({ notebookId, selected, onToggle, onOpen, onReadyCo
 		void load();
 	}, [load]);
 
-	// ohne die publication und eine select-policy verwirft realtime die events stillschweigend
+	// without the publication and a select policy realtime drops the events silently
 	useEffect(() => {
 		const channel = supabase()
 			.channel(`sources-${notebookId}`)
@@ -79,7 +79,7 @@ export function SourcesPanel({ notebookId, selected, onToggle, onOpen, onReadyCo
 			);
 
 			const put = await fetch(signedUrl, { method: 'PUT', body: file });
-			if (!put.ok) throw new Error('Die Datei ließ sich nicht hochladen');
+			if (!put.ok) throw new Error('The file could not be uploaded');
 
 			await api(`/notebooks/${notebookId}/sources`, {
 				method: 'POST',
@@ -87,7 +87,7 @@ export function SourcesPanel({ notebookId, selected, onToggle, onOpen, onReadyCo
 			});
 			await load();
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Hochladen fehlgeschlagen');
+			setError(err instanceof Error ? err.message : 'Upload failed');
 		} finally {
 			setBusy(false);
 			if (fileInput.current) fileInput.current.value = '';
@@ -102,7 +102,7 @@ export function SourcesPanel({ notebookId, selected, onToggle, onOpen, onReadyCo
 			setAdding(null);
 			await load();
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Hinzufügen fehlgeschlagen');
+			setError(err instanceof Error ? err.message : 'Could not add the source');
 		} finally {
 			setBusy(false);
 		}
@@ -117,7 +117,7 @@ export function SourcesPanel({ notebookId, selected, onToggle, onOpen, onReadyCo
 	return (
 		<div className="bg-[var(--color-panel)]/40 flex h-full flex-col">
 			<header className="flex items-center justify-between px-5 pb-3 pt-5">
-				<h2 className="font-medium">Quellen</h2>
+				<h2 className="font-medium">Sources</h2>
 				{ready > 0 && (
 					<span
 						className={cn(
@@ -127,7 +127,7 @@ export function SourcesPanel({ notebookId, selected, onToggle, onOpen, onReadyCo
 								: 'text-[var(--color-muted)]'
 						)}
 					>
-						{selected.size === 0 ? `${ready} durchsuchbar` : `${selected.size} ausgewählt`}
+						{selected.size === 0 ? `${ready} searchable` : `${selected.size} selected`}
 					</span>
 				)}
 			</header>
@@ -135,7 +135,7 @@ export function SourcesPanel({ notebookId, selected, onToggle, onOpen, onReadyCo
 			<div className="flex gap-1.5 px-4 pb-3">
 				<AddButton
 					icon={Plus}
-					label="Datei"
+					label="File"
 					onClick={() => fileInput.current?.click()}
 					busy={busy}
 				/>
@@ -182,9 +182,9 @@ export function SourcesPanel({ notebookId, selected, onToggle, onOpen, onReadyCo
 
 				{sources?.length === 0 && (
 					<li className="mt-8 px-4 text-center">
-						<p className="text-sm font-medium">Noch keine Quellen</p>
+						<p className="text-sm font-medium">No sources yet</p>
 						<p className="mt-1 text-xs leading-relaxed text-[var(--color-muted)]">
-							Lade ein PDF hoch, füge eine Webseite hinzu oder kopiere Text hinein.
+							Upload a PDF, add a web page or paste in some text.
 						</p>
 					</li>
 				)}
@@ -245,7 +245,7 @@ function SourceRow({
 					checked={checked}
 					disabled={!ready}
 					onChange={onToggle}
-					aria-label={`${source.title} für die Suche auswählen`}
+					aria-label={`Include ${source.title} in the search`}
 					className="mt-2 accent-[var(--color-accent)] disabled:opacity-30"
 				/>
 
@@ -278,16 +278,16 @@ function SourceRow({
 						{ready ? (
 							<span>{formatSize(source.charCount)}</span>
 						) : failed ? (
-							<span className="text-[var(--color-bad)]">nicht verarbeitbar</span>
+							<span className="text-[var(--color-bad)]">could not be read</span>
 						) : (
-							<span className="text-[var(--color-warn)]">wird gelesen…</span>
+							<span className="text-[var(--color-warn)]">reading…</span>
 						)}
 
 						<span className="ml-auto flex items-center gap-1 opacity-0 transition focus-within:opacity-100 group-hover:opacity-100">
 							{failed && (
 								<button
 									onClick={onRetry}
-									title="Erneut verarbeiten"
+									title="Process again"
 									className="rounded p-1 hover:bg-[var(--color-panel)]"
 								>
 									<RotateCw className="h-3 w-3" />
@@ -295,7 +295,7 @@ function SourceRow({
 							)}
 							<button
 								onClick={onRemove}
-								title="Quelle entfernen"
+								title="Remove source"
 								className="rounded p-1 hover:bg-[var(--color-panel)] hover:text-[var(--color-bad)]"
 							>
 								<X className="h-3 w-3" />
@@ -368,7 +368,7 @@ function UrlForm({ busy, onSubmit }: { busy: boolean; onSubmit: (url: string) =>
 				disabled={busy}
 				className="mt-2 w-full rounded-lg bg-[var(--color-accent)] py-1.5 text-xs font-medium text-[var(--color-accent-fg)] transition hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
 			>
-				Seite hinzufügen
+				Add page
 			</button>
 		</form>
 	);
@@ -397,7 +397,7 @@ function TextForm({
 			<input
 				required
 				autoFocus
-				placeholder="Titel"
+				placeholder="Title"
 				value={title}
 				onChange={(e) => setTitle(e.target.value)}
 				className="w-full rounded-lg border border-[var(--color-line)] bg-transparent px-2.5 py-1.5 text-sm outline-none focus:border-[var(--color-accent)]"
@@ -405,7 +405,7 @@ function TextForm({
 			<textarea
 				required
 				rows={4}
-				placeholder="Text einfügen…"
+				placeholder="Paste text…"
 				value={content}
 				onChange={(e) => setContent(e.target.value)}
 				className="mt-2 w-full resize-none rounded-lg border border-[var(--color-line)] bg-transparent px-2.5 py-1.5 text-sm outline-none focus:border-[var(--color-accent)]"
@@ -414,14 +414,14 @@ function TextForm({
 				disabled={busy}
 				className="mt-2 w-full rounded-lg bg-[var(--color-accent)] py-1.5 text-xs font-medium text-[var(--color-accent-fg)] transition hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
 			>
-				Text hinzufügen
+				Add text
 			</button>
 		</form>
 	);
 }
 
 function formatSize(chars: number | null): string {
-	if (!chars) return 'bereit';
-	if (chars < 1000) return `${chars} Zeichen`;
-	return `${Math.round(chars / 1000)} Tsd. Zeichen`;
+	if (!chars) return 'ready';
+	if (chars < 1000) return `${chars} characters`;
+	return `${Math.round(chars / 1000)}k characters`;
 }

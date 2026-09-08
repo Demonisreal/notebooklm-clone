@@ -12,6 +12,6 @@ export class ZodPipe<T> implements PipeTransform {
 			field: issue.path.join('.'),
 			message: issue.message
 		}));
-		throw new BadRequestException({ message: 'Eingabe ungültig', details });
+		throw new BadRequestException({ message: 'Invalid input', details });
 	}
 }

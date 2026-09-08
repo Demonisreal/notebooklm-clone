@@ -1,4 +1,4 @@
-// demo-zugang plus befuelltes notizbuch, sonst startet man vor leerer oberflaeche
+// demo login plus a filled notebook, otherwise the first screen is empty
 import { readFile } from 'node:fs/promises';
 import { createClient } from '@supabase/supabase-js';
 
@@ -9,7 +9,7 @@ const EMAIL = process.env.DEMO_EMAIL ?? 'demo@notebook.local';
 const PASSWORD = process.env.DEMO_PASSWORD;
 
 if (!SECRET || !PASSWORD) {
-	console.error('SUPABASE_SECRET_KEY und DEMO_PASSWORD müssen gesetzt sein');
+	console.error('SUPABASE_SECRET_KEY and DEMO_PASSWORD must be set');
 	process.exit(1);
 }
 
@@ -22,10 +22,10 @@ const { data: created, error } = await admin.auth.admin.createUser({
 });
 
 if (error && !error.message.includes('already been registered')) {
-	console.error(`Demo-Nutzer anlegen fehlgeschlagen: ${error.message}`);
+	console.error(`Could not create the demo user: ${error.message}`);
 	process.exit(1);
 }
-console.log(created?.user ? 'Demo-Nutzer angelegt' : 'Demo-Nutzer existiert bereits');
+console.log(created?.user ? 'Demo user created' : 'Demo user already exists');
 
 const session = await fetch(`${SUPA}/auth/v1/token?grant_type=password`, {
 	method: 'POST',
@@ -35,7 +35,7 @@ const session = await fetch(`${SUPA}/auth/v1/token?grant_type=password`, {
 
 const token = session.access_token;
 if (!token) {
-	console.error('Anmeldung als Demo-Nutzer fehlgeschlagen');
+	console.error('Sign-in as the demo user failed');
 	process.exit(1);
 }
 
@@ -50,17 +50,19 @@ const call = (path, body, method = 'POST') =>
 	});
 
 const existing = await call('/notebooks', null, 'GET');
-if (existing.some((n) => n.title === 'Beispiel-Notizbuch')) {
-	console.log('Beispiel-Notizbuch existiert bereits, nichts zu tun');
+if (existing.some((n) => n.title === 'Example notebook')) {
+	console.log('Example notebook already exists, nothing to do');
 	process.exit(0);
 }
 
-const notebook = await call('/notebooks', { title: 'Beispiel-Notizbuch', emoji: '📚' });
-console.log(`Notizbuch angelegt: ${notebook.id}`);
+const notebook = await call('/notebooks', { title: 'Example notebook', emoji: '📚' });
+console.log(`Notebook created: ${notebook.id}`);
 
-const pdf = await readFile(new URL('../apps/api/test/fixtures/rahmenvertrag.pdf', import.meta.url));
+const pdf = await readFile(
+	new URL('../apps/api/test/fixtures/framework-agreement.pdf', import.meta.url)
+);
 const upload = await call(`/notebooks/${notebook.id}/sources/upload-url`, {
-	filename: 'rahmenvertrag.pdf',
+	filename: 'framework-agreement.pdf',
 	size: pdf.length
 });
 
@@ -69,22 +71,22 @@ const put = await fetch(upload.signedUrl, {
 	headers: { 'Content-Type': 'application/pdf' },
 	body: pdf
 });
-if (!put.ok) throw new Error(`Upload fehlgeschlagen: ${put.status}`);
+if (!put.ok) throw new Error(`Upload failed: ${put.status}`);
 
 await call(`/notebooks/${notebook.id}/sources`, {
 	kind: 'file',
 	storagePath: upload.path,
-	title: 'Rahmenvertrag Zephyr-7.pdf'
+	title: 'Framework Agreement Zephyr-7.pdf'
 });
 
 await call(`/notebooks/${notebook.id}/sources`, {
 	kind: 'text',
-	title: 'Interne Notiz zur Garantie',
+	title: 'Internal note on the warranty',
 	content:
-		'Die Garantie auf Zephyr-7 laeuft ueber 24 Monate ab Lieferdatum. ' +
-		'Bei Bestandskunden verlaengert sich die Frist nach Paragraph 15a des Rahmenvertrags auf 36 Monate. ' +
-		'Zustaendig fuer Kulanzentscheidungen ist die Rechtsabteilung.'
+		'The warranty on Zephyr-7 runs for 24 months from the delivery date. ' +
+		'For existing customers Section 15a of the framework agreement extends that period to 36 months. ' +
+		'Goodwill decisions are up to the legal department.'
 });
 
-console.log('Quellen hinzugefügt, Verarbeitung läuft im Hintergrund');
-console.log(`\nZugang: ${EMAIL} / ${PASSWORD}`);
+console.log('Sources added, processing runs in the background');
+console.log(`\nLogin: ${EMAIL} / ${PASSWORD}`);

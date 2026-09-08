@@ -18,7 +18,7 @@ export class GeminiProvider implements LlmProvider {
 	private readonly embeddingModel: string;
 	private readonly ttsModel: string;
 
-	// free tier ~10 rpm, ohne drossel gibt ein grosses pdf sofort 429
+	// free tier ~10 rpm, without throttling a big pdf hits 429 right away
 	private readonly limiter = new Bottleneck({ minTime: 5000, maxConcurrent: 1 });
 
 	constructor(config: ConfigService) {
@@ -37,7 +37,7 @@ export class GeminiProvider implements LlmProvider {
 				signal: AbortSignal.timeout(240_000),
 				body: JSON.stringify({
 					contents: [
-						{ parts: [{ text: `Lies den folgenden Dialog natürlich vor:\n\n${dialogue}` }] }
+						{ parts: [{ text: `Read the following dialogue aloud, naturally:\n\n${dialogue}` }] }
 					],
 					generationConfig: {
 						responseModalities: ['AUDIO'],
@@ -55,7 +55,7 @@ export class GeminiProvider implements LlmProvider {
 		);
 
 		if (!response.ok) {
-			throw new ServiceUnavailableException(`Sprachausgabe fehlgeschlagen (${response.status})`);
+			throw new ServiceUnavailableException(`Speech synthesis failed (${response.status})`);
 		}
 
 		const body = (await response.json()) as {
@@ -65,7 +65,7 @@ export class GeminiProvider implements LlmProvider {
 		};
 
 		const inline = body.candidates?.[0]?.content?.parts?.find((p) => p.inlineData)?.inlineData;
-		if (!inline) throw new ServiceUnavailableException('Das Modell hat kein Audio geliefert.');
+		if (!inline) throw new ServiceUnavailableException('The model returned no audio.');
 
 		return {
 			pcm: Buffer.from(inline.data, 'base64'),
@@ -89,12 +89,12 @@ export class GeminiProvider implements LlmProvider {
 		);
 
 		if (!response.ok) {
-			throw new ServiceUnavailableException(`Embedding fehlgeschlagen (${response.status})`);
+			throw new ServiceUnavailableException(`Embedding failed (${response.status})`);
 		}
 
 		const body = (await response.json()) as { embeddings: { values: number[] }[] };
 
-		// embedding-2 kommt normalisiert, -001 bei 768 nicht (0.59 gemessen)
+		// embedding-2 arrives normalized, -001 at 768 does not (measured 0.59)
 		return body.embeddings.map((embedding) => normalize(embedding.values));
 	}
 
@@ -120,7 +120,7 @@ export class GeminiProvider implements LlmProvider {
 		);
 
 		if (!response.ok || !response.body) {
-			throw new ServiceUnavailableException(`Modell antwortet nicht (${response.status})`);
+			throw new ServiceUnavailableException(`Model is not responding (${response.status})`);
 		}
 
 		for await (const text of readSseText(response.body)) yield text;

@@ -24,7 +24,7 @@ export function AudioOverview({ notebookId, hasSources }: Props) {
 		void load();
 	}, [load]);
 
-	// tts laeuft im hintergrund, also nachfragen bis es steht
+	// tts runs in the background, so keep asking until it is there
 	useEffect(() => {
 		if (overview?.status !== 'processing' && overview?.status !== 'pending') return;
 
@@ -38,7 +38,7 @@ export function AudioOverview({ notebookId, hasSources }: Props) {
 		try {
 			setOverview(await api<Overview>(`/notebooks/${notebookId}/studio/audio`, { method: 'POST' }));
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Konnte nicht gestartet werden');
+			setError(err instanceof Error ? err.message : 'Could not start the overview');
 			setOverview(null);
 		}
 	}
@@ -50,7 +50,7 @@ export function AudioOverview({ notebookId, hasSources }: Props) {
 	return (
 		<section className="mb-5">
 			<h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--color-muted)]">
-				Audio-Zusammenfassung
+				Audio overview
 			</h3>
 
 			<div className="rounded-xl border border-[var(--color-line)] bg-[var(--color-surface)] p-3">
@@ -61,7 +61,7 @@ export function AudioOverview({ notebookId, hasSources }: Props) {
 								<Headphones className="h-4 w-4 text-[var(--color-accent)]" />
 							</span>
 							<p className="text-xs leading-snug text-[var(--color-muted)]">
-								Ein kurzes Gespräch zweier Stimmen, das deine Quellen zusammenfasst.
+								A short conversation between two voices that sums up your sources.
 							</p>
 						</div>
 						<button
@@ -69,7 +69,7 @@ export function AudioOverview({ notebookId, hasSources }: Props) {
 							disabled={!hasSources}
 							className="mt-3 w-full rounded-lg bg-[var(--color-accent)] py-2 text-xs font-medium text-[var(--color-accent-fg)] transition hover:bg-[var(--color-accent-hover)] disabled:opacity-40"
 						>
-							{hasSources ? 'Gespräch erzeugen' : 'Zuerst eine Quelle hinzufügen'}
+							{hasSources ? 'Generate conversation' : 'Add a source first'}
 						</button>
 					</>
 				)}
@@ -78,9 +78,9 @@ export function AudioOverview({ notebookId, hasSources }: Props) {
 					<div className="flex items-center gap-2.5 py-1">
 						<Loader2 className="h-4 w-4 shrink-0 animate-spin text-[var(--color-accent)]" />
 						<div>
-							<p className="text-xs font-medium">Wird erzeugt…</p>
+							<p className="text-xs font-medium">Generating…</p>
 							<p className="mt-0.5 text-[11px] text-[var(--color-muted)]">
-								Skript und Sprachausgabe dauern ein bis zwei Minuten.
+								Script and speech take a minute or two.
 							</p>
 						</div>
 					</div>
@@ -89,14 +89,14 @@ export function AudioOverview({ notebookId, hasSources }: Props) {
 				{overview?.status === 'error' && (
 					<div>
 						<p className="text-xs text-[var(--color-bad)]">
-							{overview.errorMessage ?? 'Die Erzeugung ist fehlgeschlagen.'}
+							{overview.errorMessage ?? 'Generating the overview failed.'}
 						</p>
 						<button
 							onClick={start}
 							className="mt-2 flex items-center gap-1.5 text-xs text-[var(--color-accent)] hover:underline"
 						>
 							<RotateCw className="h-3 w-3" />
-							Erneut versuchen
+							Try again
 						</button>
 					</div>
 				)}
@@ -110,13 +110,13 @@ export function AudioOverview({ notebookId, hasSources }: Props) {
 								onClick={() => setShowScript(!showScript)}
 								className="text-[11px] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
 							>
-								{showScript ? 'Text ausblenden' : 'Mitlesen'}
+								{showScript ? 'Hide transcript' : 'Read along'}
 							</button>
 							<button
 								onClick={start}
 								className="text-[11px] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
 							>
-								Neu erzeugen
+								Regenerate
 							</button>
 						</div>
 
@@ -176,7 +176,7 @@ function Player({ url, seconds }: { url: string; seconds: number }) {
 
 			<button
 				onClick={toggle}
-				aria-label={playing ? 'Pause' : 'Abspielen'}
+				aria-label={playing ? 'Pause' : 'Play'}
 				className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[var(--color-accent)] text-[var(--color-accent-fg)] transition hover:bg-[var(--color-accent-hover)]"
 			>
 				{playing ? <Pause className="h-4 w-4" /> : <Play className="ml-0.5 h-4 w-4" />}

@@ -24,7 +24,7 @@ export class StudioController {
 		@Param('kind') kind: string
 	) {
 		if (!studioKinds.includes(kind as StudioKind)) {
-			throw new BadRequestException(`Unbekannte Studio-Ausgabe: ${kind}`);
+			throw new BadRequestException(`Unknown studio output: ${kind}`);
 		}
 		if (kind === 'audio') return this.audio.start(user, notebookId);
 

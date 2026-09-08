@@ -5,52 +5,54 @@ import { pageForOffset, UnsupportedSourceError } from './extractor';
 const page = `
 <!doctype html>
 <html><body>
-	<nav><a href="/">Startseite</a><a href="/preise">Preise</a></nav>
+	<nav><a href="/">Home</a><a href="/pricing">Pricing</a></nav>
 	<article>
-		<h1>Kündigungsfristen im Überblick</h1>
-		<p>Die Frist beträgt vier Wochen zum Monatsende. Maßgeblich ist der Zugang
-		der Kündigung beim Empfänger, nicht das Datum des Poststempels.</p>
-		<p>Bei Bestandskunden gilt eine abweichende Regelung nach § 15a des Vertrags.</p>
+		<h1>Notice periods at a glance</h1>
+		<p>The notice period is four weeks to the end of the month. What counts is the day
+		the notice reaches the recipient, not the postmark.</p>
+		<p>Existing customers fall under a separate rule in section 15a of the contract.</p>
 	</article>
-	<footer>Impressum · Datenschutz · Cookie-Einstellungen</footer>
+	<footer>Imprint · Privacy · Cookie settings</footer>
 </body></html>`;
 
 describe('extractHtml', () => {
-	it('behaelt den fliesstext', () => {
-		const { text } = extractHtml(page, 'https://example.com/fristen');
-		expect(text).toContain('vier Wochen zum Monatsende');
-		expect(text).toContain('§ 15a');
+	it('keeps the body text', () => {
+		const { text } = extractHtml(page, 'https://example.com/notice');
+		expect(text).toContain('four weeks to the end of the month');
+		expect(text).toContain('section 15a');
 	});
 
-	it('wirft navigation und footer raus, die sonst in jedem chunk landen', () => {
-		const { text } = extractHtml(page, 'https://example.com/fristen');
-		expect(text).not.toContain('Cookie-Einstellungen');
-		expect(text).not.toContain('Impressum');
+	it('throws out nav and footer, which would land in every chunk otherwise', () => {
+		const { text } = extractHtml(page, 'https://example.com/notice');
+		expect(text).not.toContain('Cookie settings');
+		expect(text).not.toContain('Imprint');
 	});
 
-	it('liest den titel aus dem title-tag', () => {
+	it('reads the title from the title tag', () => {
 		const withTitle = page.replace(
 			'<html>',
-			'<html><head><title>Fristen | Beispiel AG</title></head>'
+			'<html><head><title>Notice periods | Example Ltd</title></head>'
 		);
-		expect(extractHtml(withTitle, 'https://example.com/f').title).toBe('Fristen | Beispiel AG');
+		expect(extractHtml(withTitle, 'https://example.com/f').title).toBe(
+			'Notice periods | Example Ltd'
+		);
 	});
 
-	it('faellt auf die ueberschrift zurueck, wenn kein title-tag da ist', () => {
-		expect(extractHtml(page, 'https://example.com/f').title).toContain('Kündigungsfristen');
+	it('falls back to the heading when there is no title tag', () => {
+		expect(extractHtml(page, 'https://example.com/f').title).toContain('Notice periods');
 	});
 
-	it('meldet seiten, die ihren inhalt erst per javascript laden', () => {
+	it('flags pages that only load their content through javascript', () => {
 		const shell = '<!doctype html><html><body><div id="root"></div></body></html>';
 		expect(() => extractHtml(shell, 'https://example.com')).toThrow(UnsupportedSourceError);
 	});
 });
 
 describe('pageForOffset', () => {
-	// seite 1 ab 0, seite 2 ab 100, seite 3 ab 250
+	// page 1 from 0, page 2 from 100, page 3 from 250
 	const starts = [0, 100, 250];
 
-	it('ordnet offsets der richtigen seite zu', () => {
+	it('maps offsets to the right page', () => {
 		expect(pageForOffset(starts, 0)).toBe(1);
 		expect(pageForOffset(starts, 99)).toBe(1);
 		expect(pageForOffset(starts, 100)).toBe(2);
@@ -59,7 +61,7 @@ describe('pageForOffset', () => {
 		expect(pageForOffset(starts, 9999)).toBe(3);
 	});
 
-	it('gibt null zurueck, wenn die quelle keine seiten hat', () => {
+	it('returns null when the source has no pages', () => {
 		expect(pageForOffset([], 42)).toBeNull();
 	});
 });

@@ -10,11 +10,11 @@ export type ContextBlock = {
 	content: string;
 };
 
-// gemini gruppiert mehrere belege gern als [1, 2, 5], also gleich mit einsammeln
+// gemini likes to group several references as [1, 2, 5], so pick those up as well
 const MARKER = /\[(\d+(?:\s*,\s*\d+)*)\]/g;
 const SNIPPET_CHARS = 220;
 
-// modelle erfinden belege, die es nicht gibt - die fliegen raus
+// models invent references that do not exist - those get thrown out
 export function resolveCitations(text: string, blocks: ContextBlock[]) {
 	const renumbered = new Map<number, number>();
 
@@ -55,7 +55,7 @@ function snippet(content: string): string {
 	return `${flat.slice(0, SNIPPET_CHARS)}…`;
 }
 
-// nach dem entfernen bleiben doppelte leerzeichen und leerzeichen vor satzzeichen zurueck
+// removing markers leaves double spaces and spaces in front of punctuation
 function tidy(text: string): string {
 	return text
 		.replace(/ {2,}/g, ' ')

@@ -12,7 +12,7 @@ create table audio_overviews (
 	created_at timestamptz not null default now()
 );
 
--- pro notizbuch reicht eine zusammenfassung, ein neuer lauf ersetzt sie
+-- one overview per notebook is enough, a new run replaces it
 create unique index on audio_overviews (notebook_id);
 
 alter table audio_overviews enable row level security;
