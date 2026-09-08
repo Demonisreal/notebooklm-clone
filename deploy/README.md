@@ -61,8 +61,13 @@ docker compose up -d --build
 SUPABASE_URL=https://db.notebook.deine-domain.de \
 SUPABASE_SECRET_KEY=<service-role-key> \
 API_URL=https://api.notebook.deine-domain.de \
+DEMO_PASSWORD=<passwort> \
 node scripts/seed-demo.mjs
 ```
+
+Steht die Demo öffentlich, gehört danach `DEMO_USER_EMAIL=demo@notebook.local` in die `.env` und der `api`-Dienst neu gestartet. Der Demo-Zugang kann dann nur noch lesen und chatten; Hochladen, Umbenennen und Löschen lehnt die API ab, das Beispiel-Notizbuch bleibt für den nächsten Besucher stehen.
+
+Reihenfolge beachten: `seed-demo.mjs` und `reembed-all.mjs` arbeiten selbst über diese gesperrten Routen. Beide laufen nur, solange `DEMO_USER_EMAIL` **nicht** gesetzt ist — zum Nachziehen also erst herausnehmen, `api` neu starten, Skript laufen lassen, wieder eintragen.
 
 ## Prüfen
 
