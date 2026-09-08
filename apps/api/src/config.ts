@@ -12,6 +12,8 @@ const schema = z.object({
 	SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
 	SUPABASE_SECRET_KEY: z.string().min(1),
 	SUPABASE_JWT_ISSUER: z.string().url(),
+	// konto der oeffentlichen demo, darf nur lesen
+	DEMO_USER_EMAIL: z.string().optional(),
 
 	LLM_PROVIDER: z.enum(['fake', 'gemini']).default('fake'),
 	GEMINI_API_KEY: z.string().optional(),
