@@ -5,10 +5,10 @@ const SUPA = process.env.SUPABASE_URL ?? 'http://127.0.0.1:54321';
 const SECRET = process.env.SUPABASE_SECRET_KEY;
 const API = process.env.API_URL ?? 'http://localhost:3001';
 const EMAIL = process.env.DEMO_EMAIL ?? 'demo@notebook.local';
-const PASSWORD = process.env.DEMO_PASSWORD ?? 'demo12345';
+const PASSWORD = process.env.DEMO_PASSWORD;
 
-if (!SECRET) {
-	console.error('SUPABASE_SECRET_KEY fehlt');
+if (!SECRET || !PASSWORD) {
+	console.error('SUPABASE_SECRET_KEY und DEMO_PASSWORD müssen gesetzt sein');
 	process.exit(1);
 }
 
