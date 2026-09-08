@@ -59,10 +59,10 @@ export class SourcesService {
 
 		const extension = filename.split('.').pop()?.toLowerCase() ?? '';
 		if (!extensionToKind[extension]) {
-			throw new BadRequestException(`Dateityp .${extension} wird nicht unterstützt`);
+			throw new BadRequestException(`File type .${extension} is not supported`);
 		}
 
-		// erstes pfadsegment ist die user-id, darauf prueft die storage-policy
+		// first path segment is the user id, that is what the storage policy checks
 		const path = `${user.id}/${randomUUID()}.${extension}`;
 		const { data, error } = await this.supabase
 			.forUser(user.token)
@@ -102,7 +102,7 @@ export class SourcesService {
 
 		if (error) throw new InternalServerErrorException(error.message);
 
-		// bewusst ohne await: der client sieht den fortschritt ueber den status
+		// without await on purpose: the client follows progress through the status
 		void this.ingestion.run((data as Row).id);
 		return toSource(data as Row);
 	}
@@ -116,7 +116,7 @@ export class SourcesService {
 			.maybeSingle();
 
 		if (error) throw new InternalServerErrorException(error.message);
-		if (!data) throw new NotFoundException('Quelle nicht gefunden');
+		if (!data) throw new NotFoundException('Source not found');
 
 		return {
 			id: data.id,
@@ -144,7 +144,7 @@ export class SourcesService {
 			.eq('id', sourceId)
 			.maybeSingle();
 
-		if (!data) throw new NotFoundException('Quelle nicht gefunden');
+		if (!data) throw new NotFoundException('Source not found');
 		void this.ingestion.run(sourceId);
 	}
 
@@ -161,7 +161,7 @@ export class SourcesService {
 
 		const extension = input.storagePath.split('.').pop()?.toLowerCase() ?? '';
 		const kind = extensionToKind[extension];
-		if (!kind) throw new BadRequestException(`Dateityp .${extension} wird nicht unterstützt`);
+		if (!kind) throw new BadRequestException(`File type .${extension} is not supported`);
 
 		return { ...base, kind, title: input.title, storage_path: input.storagePath };
 	}
@@ -174,6 +174,6 @@ export class SourcesService {
 			.eq('id', notebookId)
 			.maybeSingle();
 
-		if (!data) throw new NotFoundException('Notizbuch nicht gefunden');
+		if (!data) throw new NotFoundException('Notebook not found');
 	}
 }

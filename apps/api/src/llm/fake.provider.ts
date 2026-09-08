@@ -28,7 +28,7 @@ function seeded(seed: number): () => number {
 	};
 }
 
-// deterministisch, damit tests reproduzierbar sind - semantisch ist das nicht
+// deterministic so tests stay reproducible - nothing semantic about it
 @Injectable()
 export class FakeProvider implements LlmProvider {
 	async embed(texts: string[]): Promise<number[][]> {
@@ -50,7 +50,7 @@ export class FakeProvider implements LlmProvider {
 		const seconds = Math.min(20, Math.max(2, Math.round(dialogue.length / 90)));
 		const pcm = Buffer.alloc(sampleRate * seconds * 2);
 
-		// ein leiser sinus, damit der player im dev-modus etwas abzuspielen hat
+		// a quiet sine wave so the player has something to play in dev mode
 		for (let i = 0; i < pcm.length / 2; i++) {
 			pcm.writeInt16LE(Math.round(Math.sin((i / sampleRate) * 2 * Math.PI * 220) * 2200), i * 2);
 		}
@@ -75,28 +75,28 @@ function countContextBlocks(prompt: string): number {
 	return prompt.match(/^\[\d+\]/gm)?.length ?? 0;
 }
 
-// die studio-ausgaben sollen ohne api-key entwickelbar bleiben
+// the studio outputs should stay workable without an api key
 function looksLikeJsonRequest(prompt: string): boolean {
-	return prompt.includes('als JSON');
+	return prompt.includes('as JSON');
 }
 
 const FAKE_TREE = JSON.stringify({
-	label: 'Beispiel-Notizbuch',
+	label: 'Sample notebook',
 	children: [
-		{ label: 'Fristen', children: [{ label: 'Vier Wochen zum Monatsende' }] },
-		{ label: 'Garantie', children: [{ label: '24 Monate ab Lieferung' }] }
+		{ label: 'Notice periods', children: [{ label: 'Four weeks to the end of the month' }] },
+		{ label: 'Warranty', children: [{ label: '24 months from delivery' }] }
 	]
 });
 
 function buildAnswer(blocks: number): string {
 	if (blocks === 0) {
-		return 'Dazu steht nichts in den ausgewählten Quellen.';
+		return 'The selected sources say nothing about that.';
 	}
 
-	// [99] ist absicht: der zitat-parser muss halluzinierte nummern verwerfen
+	// [99] is deliberate: the citation parser has to drop hallucinated numbers
 	const cited =
 		blocks >= 2
-			? 'Laut den Quellen gilt das [1] und ergänzend auch das [2].'
-			: 'Laut der Quelle gilt das [1].';
-	return `${cited} Ein weiterer Punkt lässt sich so nicht belegen [99].`;
+			? 'According to the sources this holds [1] and so does that [2].'
+			: 'According to the source this holds [1].';
+	return `${cited} One more point cannot be backed up like this [99].`;
 }

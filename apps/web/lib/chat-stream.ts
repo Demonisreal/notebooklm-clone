@@ -9,7 +9,7 @@ export async function* streamChat(
 	const response = await apiStream(`/notebooks/${notebookId}/chat`, body, signal);
 
 	if (!response.ok || !response.body) {
-		yield { type: 'error', message: 'Der Chat ist gerade nicht erreichbar.' };
+		yield { type: 'error', message: 'Chat is unavailable right now.' };
 		return;
 	}
 
@@ -23,7 +23,7 @@ export async function* streamChat(
 
 		buffer += decoder.decode(value, { stream: true });
 		const lines = buffer.split('\n');
-		// die letzte zeile kann unvollstaendig sein, die bleibt im puffer
+		// the last line can be incomplete, that one stays in the buffer
 		buffer = lines.pop() ?? '';
 
 		for (const line of lines) {
