@@ -1,6 +1,7 @@
 import { BadRequestException, Controller, Get, Param, Post } from '@nestjs/common';
 import { studioKinds, type StudioKind } from 'shared';
 import { CurrentUser } from '../auth/current-user.decorator';
+import { DemoLimit } from '../auth/demo-limit.guard';
 import type { AuthUser } from '../auth/jwt.guard';
 import { AudioService } from './audio.service';
 import { StudioService } from './studio.service';
@@ -17,6 +18,7 @@ export class StudioController {
 		return this.audio.get(user, notebookId);
 	}
 
+	@DemoLimit('studio')
 	@Post('notebooks/:id/studio/:kind')
 	generate(
 		@CurrentUser() user: AuthUser,

@@ -2,6 +2,8 @@ import { join } from 'node:path';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { DemoLimitGuard } from './auth/demo-limit.guard';
+import { DemoLimitService } from './auth/demo-limit.service';
 import { DemoWriteGuard } from './auth/demo-write.guard';
 import { JwtGuard } from './auth/jwt.guard';
 import { loadConfig } from './config';
@@ -32,7 +34,9 @@ import { SupabaseModule } from './supabase/supabase.module';
 	// order matters: the JwtGuard runs first and sets request.user
 	providers: [
 		{ provide: APP_GUARD, useClass: JwtGuard },
-		{ provide: APP_GUARD, useClass: DemoWriteGuard }
+		{ provide: APP_GUARD, useClass: DemoWriteGuard },
+		{ provide: APP_GUARD, useClass: DemoLimitGuard },
+		DemoLimitService
 	]
 })
 export class AppModule {}

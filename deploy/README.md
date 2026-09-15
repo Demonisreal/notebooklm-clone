@@ -69,6 +69,20 @@ If the demo is public, `DEMO_USER_EMAIL=demo@notebook.local` belongs in the `.en
 
 Mind the order: `seed-demo.mjs` and `reembed-all.mjs` work through those blocked routes themselves. Both only run while `DEMO_USER_EMAIL` is **not** set — to top up the data, remove it, restart `api`, run the script, put it back.
 
+Chat and studio stay open for the demo login, and both cost Gemini quota. So they are limited for that account alone, other accounts are not affected:
+
+| Variable               | Default | Counts                                                                |
+| ---------------------- | ------- | --------------------------------------------------------------------- |
+| `DEMO_CHAT_PER_HOUR`   | 10      | chat questions per visitor address in the last 60 minutes             |
+| `DEMO_STUDIO_PER_HOUR` | 3       | studio generations (briefing, FAQ, study guide, mind map, audio)      |
+| `DEMO_DAILY_CAP`       | 200     | both together, across all addresses; resets at midnight Europe/Berlin |
+
+Beyond that the API answers `429` and the frontend says the demo limit has been reached. The hourly limits are a sliding window, the daily cap is a plain counter per calendar day — simpler than a rolling 24 hours and easy to reason about when checking the Gemini bill.
+
+The counters live in the memory of the `api` container. That is enough because it runs exactly once; a restart resets them, which at worst hands out one extra daily budget. With a second container they would have to move to Postgres.
+
+The visitor address comes from `X-Forwarded-For`, which Caddy sets. The API only believes that header from loopback and private addresses (`trust proxy` in `apps/api/src/main.ts`), and it publishes no port of its own — keep it that way, otherwise the header becomes spoofable.
+
 ## Checks
 
 ```bash
