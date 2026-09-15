@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import { chatRequestSchema } from 'shared';
 import type { ChatRequestInput, ChatStreamEvent } from 'shared';
 import { CurrentUser } from '../auth/current-user.decorator';
+import { DemoLimit } from '../auth/demo-limit.guard';
 import type { AuthUser } from '../auth/jwt.guard';
 import { ZodPipe } from '../zod.pipe';
 import { ChatService } from './chat.service';
@@ -11,6 +12,7 @@ import { ChatService } from './chat.service';
 export class ChatController {
 	constructor(private readonly chat: ChatService) {}
 
+	@DemoLimit('chat')
 	@Post('notebooks/:id/chat')
 	async ask(
 		@CurrentUser() user: AuthUser,

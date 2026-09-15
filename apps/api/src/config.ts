@@ -14,6 +14,10 @@ const schema = z.object({
 	SUPABASE_JWT_ISSUER: z.string().url(),
 	// the public demo account, read only
 	DEMO_USER_EMAIL: z.string().optional(),
+	// only the demo account is limited, everything that reaches gemini counts
+	DEMO_CHAT_PER_HOUR: z.coerce.number().int().positive().default(10),
+	DEMO_STUDIO_PER_HOUR: z.coerce.number().int().positive().default(3),
+	DEMO_DAILY_CAP: z.coerce.number().int().positive().default(200),
 
 	LLM_PROVIDER: z.enum(['fake', 'gemini']).default('fake'),
 	GEMINI_API_KEY: z.string().optional(),

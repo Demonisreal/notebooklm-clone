@@ -19,6 +19,8 @@ The account comes with a prepared notebook and two fully processed sources, so t
 
 It is read-only: chat, citations and studio work, but uploading, renaming and deleting are rejected by the API. That way the example notebook is still intact for the next visitor. To put your own sources in, create an account in the same interface.
 
+Chat and studio are rationed for this account so the Gemini bill stays bounded: 10 questions and 3 studio generations per hour per visitor, 200 requests a day for everyone together. Past that the app says the demo limit has been reached.
+
 ### The core idea in two minutes
 
 1. **Sign in** and open the **"Example notebook"**.
@@ -155,22 +157,23 @@ DEMO_PASSWORD=secret pnpm seed:demo
 ## Tests
 
 ```bash
-pnpm test     # 55 tests, 61 with Supabase running
+pnpm test     # 64 tests, 70 with Supabase running
 ```
 
 No coverage theatre, but tests where logic can be **silently** wrong:
 
-| File                       | Checks                                                                                                                                                                                                 |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `chunker.spec.ts`          | The invariant `extracted_text.slice(charStart, charEnd) === content` — including overlong paragraphs and text without spaces. If it breaks, every citation points off target without anything crashing |
-| `citations.spec.ts`        | Invented citation numbers are removed, grouped ones like `[1, 2]` are split, the rest renumbered without gaps                                                                                          |
-| `match-chunks.spec.ts`     | Search against the real database, including the case that would come back empty without `iterative_scan`                                                                                               |
-| `pdf.spec.ts`              | Page mapping across page boundaries; scans without a text layer are detected                                                                                                                           |
-| `ingestion.spec.ts`        | Uploaded text files against pasted text — two paths, the same kind of source                                                                                                                           |
-| `html.spec.ts`             | Navigation and footer are dropped instead of landing in every chunk                                                                                                                                    |
-| `wav.spec.ts`              | The WAV header carries the right sample rate, otherwise the audio plays too fast                                                                                                                       |
-| `fake.provider.spec.ts`    | Embeddings are reproducible and normalised                                                                                                                                                             |
-| `demo-write.guard.spec.ts` | The public demo account is refused on write routes and let through everywhere else, and the guard stays inert when no demo account is configured                                                       |
+| File                       | Checks                                                                                                                                                                                                                 |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `chunker.spec.ts`          | The invariant `extracted_text.slice(charStart, charEnd) === content` — including overlong paragraphs and text without spaces. If it breaks, every citation points off target without anything crashing                 |
+| `citations.spec.ts`        | Invented citation numbers are removed, grouped ones like `[1, 2]` are split, the rest renumbered without gaps                                                                                                          |
+| `match-chunks.spec.ts`     | Search against the real database, including the case that would come back empty without `iterative_scan`                                                                                                               |
+| `pdf.spec.ts`              | Page mapping across page boundaries; scans without a text layer are detected                                                                                                                                           |
+| `ingestion.spec.ts`        | Uploaded text files against pasted text — two paths, the same kind of source                                                                                                                                           |
+| `html.spec.ts`             | Navigation and footer are dropped instead of landing in every chunk                                                                                                                                                    |
+| `wav.spec.ts`              | The WAV header carries the right sample rate, otherwise the audio plays too fast                                                                                                                                       |
+| `fake.provider.spec.ts`    | Embeddings are reproducible and normalised                                                                                                                                                                             |
+| `demo-write.guard.spec.ts` | The public demo account is refused on write routes and let through everywhere else, and the guard stays inert when no demo account is configured                                                                       |
+| `demo-limit.guard.spec.ts` | The demo account gets a 429 past its hourly limit per address and past the daily cap, which resets at midnight in Berlin; other accounts are never counted, and `X-Forwarded-For` is only believed from a private peer |
 
 `match-chunks.spec.ts` skips itself when no Supabase is configured.
 

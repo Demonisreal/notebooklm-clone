@@ -1,5 +1,5 @@
 import type { ChatStreamEvent } from 'shared';
-import { apiStream } from './api';
+import { apiStream, DEMO_LIMIT_MESSAGE } from './api';
 
 export async function* streamChat(
 	notebookId: string,
@@ -8,6 +8,10 @@ export async function* streamChat(
 ): AsyncIterable<ChatStreamEvent> {
 	const response = await apiStream(`/notebooks/${notebookId}/chat`, body, signal);
 
+	if (response.status === 429) {
+		yield { type: 'error', message: DEMO_LIMIT_MESSAGE };
+		return;
+	}
 	if (!response.ok || !response.body) {
 		yield { type: 'error', message: 'Chat is unavailable right now.' };
 		return;
