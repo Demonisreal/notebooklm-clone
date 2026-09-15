@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { LegalLinks } from '@/components/legal-links';
 import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
@@ -104,8 +105,9 @@ export default function LoginPage() {
 							type="password"
 							value={password}
 							onChange={setPassword}
-							placeholder="at least 6 characters"
-							minLength={6}
+							placeholder={mode === 'signup' ? 'at least 10 characters' : undefined}
+							// older accounts may still have shorter passwords, so only sign-up checks
+							minLength={mode === 'signup' ? 10 : undefined}
 						/>
 					</div>
 
@@ -141,6 +143,8 @@ export default function LoginPage() {
 							</>
 						)}
 					</button>
+
+					<LegalLinks className="mt-10 text-center" />
 				</form>
 			</section>
 		</main>
@@ -179,8 +183,10 @@ function Field({
 }
 
 function friendly(message: string): string {
-	if (message.includes('Invalid login credentials')) return 'That email or password is wrong.';
+	// a locked account gets the same answer from gotrue, so the pause is mentioned here
+	if (message.includes('Invalid login credentials'))
+		return 'That email or password is wrong. After several failed attempts sign-in pauses for 15 minutes.';
 	if (message.includes('already been registered')) return 'That email is already taken.';
-	if (message.includes('Password should be')) return 'The password needs at least 6 characters.';
+	if (message.includes('Password should be')) return 'The password needs at least 10 characters.';
 	return message;
 }

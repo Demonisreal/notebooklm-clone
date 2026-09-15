@@ -18,7 +18,9 @@ const admin = createClient(SUPA, SECRET, { auth: { persistSession: false } });
 const { data: created, error } = await admin.auth.admin.createUser({
 	email: EMAIL,
 	password: PASSWORD,
-	email_confirm: true
+	email_confirm: true,
+	// the login lockout hook skips this account, its password is public anyway
+	app_metadata: { demo: true }
 });
 
 if (error && !error.message.includes('already been registered')) {
@@ -37,6 +39,17 @@ const token = session.access_token;
 if (!token) {
 	console.error('Sign-in as the demo user failed');
 	process.exit(1);
+}
+
+// a demo user from before the lockout hook exists without the flag and createUser leaves it be
+if (!session.user.app_metadata?.demo) {
+	const { error } = await admin.auth.admin.updateUserById(session.user.id, {
+		app_metadata: { demo: true }
+	});
+	if (error) {
+		console.error(`Could not flag the demo user: ${error.message}`);
+		process.exit(1);
+	}
 }
 
 const call = (path, body, method = 'POST') =>

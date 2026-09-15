@@ -5,6 +5,16 @@
 {$APP_DOMAIN} {
 	reverse_proxy web:3000
 	encode zstd gzip
+
+	# the csp comes from apps/web/proxy.ts, it needs a fresh nonce per request
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-X-Powered-By
+		-Server
+	}
 }
 
 {$API_DOMAIN} {
@@ -13,6 +23,17 @@
 		flush_interval -1
 	}
 	encode zstd gzip
+
+	# json and sse only, nothing here may render or be framed
+	header {
+		Content-Security-Policy "default-src 'none'; frame-ancestors 'none'"
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-X-Powered-By
+		-Server
+	}
 }
 
 {$DB_DOMAIN} {
