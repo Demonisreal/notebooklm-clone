@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import type { Notebook } from 'shared';
+import { LegalLinks } from '@/components/legal-links';
 import { api, ApiError } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 
@@ -181,6 +182,10 @@ export default function NotebooksPage() {
 					))}
 				</ul>
 			</main>
+
+			<footer className="mx-auto max-w-5xl border-t border-[var(--color-line)] px-6 py-6">
+				<LegalLinks />
+			</footer>
 		</div>
 	);
 }

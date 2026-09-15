@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { use, useCallback, useEffect, useState } from 'react';
 import type { Citation, Notebook } from 'shared';
 import { ChatPanel } from '@/components/chat-panel';
+import { LegalLinks } from '@/components/legal-links';
 import { SourcesPanel } from '@/components/sources-panel';
 import { SourceViewer } from '@/components/source-viewer';
 import { StudioPanel } from '@/components/studio-panel';
@@ -168,6 +169,8 @@ export default function NotebookPage({ params }: { params: Promise<{ id: string 
 						</button>
 					))}
 				</nav>
+
+				<LegalLinks className="ml-auto hidden shrink-0 md:block" />
 			</header>
 
 			<div className="grid min-h-0 flex-1 md:grid-cols-[minmax(240px,1fr)_minmax(0,2.1fr)_minmax(280px,1.25fr)]">

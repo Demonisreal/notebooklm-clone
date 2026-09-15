@@ -43,6 +43,7 @@ supabase link --project-ref <ref>   # or straight through the tunnel with psql
 psql "$DB_URL" -f supabase/migrations/20260804090000_init.sql
 psql "$DB_URL" -f supabase/migrations/20260804090100_match_chunks.sql
 psql "$DB_URL" -f supabase/migrations/20260810120000_audio_overviews.sql
+psql "$DB_URL" -f supabase/migrations/20260915120000_login_lockout.sql
 ```
 
 ## 4. Application
@@ -82,6 +83,47 @@ Beyond that the API answers `429` and the frontend says the demo limit has been 
 The counters live in the memory of the `api` container. That is enough because it runs exactly once; a restart resets them, which at worst hands out one extra daily budget. With a second container they would have to move to Postgres.
 
 The visitor address comes from `X-Forwarded-For`, which Caddy sets. The API only believes that header from loopback and private addresses (`trust proxy` in `apps/api/src/main.ts`), and it publishes no port of its own — keep it that way, otherwise the header becomes spoofable.
+
+## Sign-in hardening
+
+The browser signs in straight against GoTrue, so everything that protects passwords has to sit in front of or inside GoTrue — a limit in the web app would be skipped by anyone calling `/auth/v1/token` directly.
+
+**Per account:** the migration `20260915120000_login_lockout.sql` installs a password verification hook. After five failed attempts the account is locked for 15 minutes, even the right password gets the usual "Invalid login credentials" during that time, and until a day passes without a miss every further miss locks again. Accounts with `app_metadata.demo = true` are left alone, their password is public. A demo account created before this migration gets the flag when `seed-demo.mjs` runs again. A lock is lifted by deleting the row in `auth_login_attempts`. If the hook function is missing or broken, GoTrue answers every password sign-in with a 500 — run the migration before enabling the hook.
+
+In `~/supabase-stack/docker-compose.yml`, service `auth`, below `GOTRUE_JWT_EXP` (which is replaced):
+
+```yaml
+GOTRUE_JWT_EXP: 1800
+GOTRUE_SECURITY_REFRESH_TOKEN_ROTATION_ENABLED: 'true'
+GOTRUE_SECURITY_REFRESH_TOKEN_REUSE_INTERVAL: 10
+GOTRUE_PASSWORD_MIN_LENGTH: 10
+GOTRUE_HOOK_PASSWORD_VERIFICATION_ATTEMPT_ENABLED: 'true'
+GOTRUE_HOOK_PASSWORD_VERIFICATION_ATTEMPT_URI: pg-functions://postgres/public/hook_password_verification_attempt
+# without this header gotrue applies none of its per-address limits
+GOTRUE_RATE_LIMIT_HEADER: X-Real-IP
+GOTRUE_RATE_LIMIT_TOKEN_REFRESH: 150
+GOTRUE_RATE_LIMIT_VERIFY: 30
+GOTRUE_RATE_LIMIT_OTP: 30
+GOTRUE_RATE_LIMIT_EMAIL_SENT: 30
+```
+
+**Per address:** Kong limits `/auth/v1/token` (10/min, 30/h; a JSON refresh 30/min, 300/h), `signup`, `recover`, `otp`, `resend`, `magiclink` (5/min, 20/h each) and `verify` (5/min, 30/h). Apply [`kong-auth-rate-limits.diff`](kong-auth-rate-limits.diff) to `volumes/api/kong.yml` and extend the `kong` service:
+
+```yaml
+KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth,request-termination,ip-restriction,post-function,rate-limiting
+# caddy overwrites X-Forwarded-For, kong only has to believe it from the docker network
+KONG_TRUSTED_IPS: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+KONG_REAL_IP_HEADER: X-Forwarded-For
+KONG_REAL_IP_RECURSIVE: 'on'
+```
+
+Without the trusted IPs every visitor counts as Caddy and the first ten sign-ins per minute lock out everyone else.
+
+```bash
+cd ~/supabase-stack
+patch -p1 --dry-run < ~/notebooklm/deploy/kong-auth-rate-limits.diff && patch -p1 < ~/notebooklm/deploy/kong-auth-rate-limits.diff
+docker compose up -d auth kong
+```
 
 ## Checks
 

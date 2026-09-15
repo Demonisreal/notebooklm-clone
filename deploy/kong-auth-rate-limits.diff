@@ -1,0 +1,145 @@
+--- a/volumes/api/kong.yml
++++ b/volumes/api/kong.yml
+@@ -47,6 +47,12 @@
+           - /auth/v1/verify
+     plugins:
+       - name: cors
++      - name: rate-limiting
++        config:
++          minute: 5
++          hour: 30
++          policy: local
++          limit_by: ip
+   - name: auth-v1-open-callback
+     _comment: 'Auth: /auth/v1/callback* -> http://auth:9999/callback*'
+     url: http://auth:9999/callback
+@@ -107,7 +113,7 @@
+         strip_path: true
+         paths:
+           - /auth/v1/
+-    plugins:
++    plugins: &auth-v1-plugins
+       - name: cors
+       - name: key-auth
+         config:
+@@ -127,6 +133,120 @@
+             - admin
+             - anon
+ 
++  ## Rate limited auth routes
++  # counted per client address, which Kong only sees through KONG_TRUSTED_IPS and
++  # KONG_REAL_IP_HEADER. the plugins are the ones of auth-v1, via the yaml anchor.
++  - name: auth-v1-token
++    _comment: 'Auth: /auth/v1/token* -> http://auth:9999/token*'
++    url: http://auth:9999/token
++    routes:
++      # password grant and anything ambiguous (duplicate grant_type, form body, trailing
++      # slash) share the small budget
++      - name: auth-v1-token
++        strip_path: true
++        paths:
++          - /auth/v1/token
++        plugins:
++          - name: rate-limiting
++            config:
++              minute: 10
++              hour: 30
++              policy: local
++              limit_by: ip
++      # gotrue also reads grant_type from a form body, so only a json refresh gets more
++      - name: auth-v1-token-refresh
++        strip_path: true
++        expression: 'http.path == "/auth/v1/token" && http.queries.grant_type == "refresh_token" && http.headers.content_type ^= "application/json"'
++        priority: 100
++        plugins:
++          - name: rate-limiting
++            config:
++              minute: 30
++              hour: 300
++              policy: local
++              limit_by: ip
++    plugins: *auth-v1-plugins
++  - name: auth-v1-signup
++    _comment: 'Auth: /auth/v1/signup* -> http://auth:9999/signup*'
++    url: http://auth:9999/signup
++    routes:
++      - name: auth-v1-signup
++        strip_path: true
++        paths:
++          - /auth/v1/signup
++        plugins:
++          - name: rate-limiting
++            config:
++              minute: 5
++              hour: 20
++              policy: local
++              limit_by: ip
++    plugins: *auth-v1-plugins
++  - name: auth-v1-recover
++    _comment: 'Auth: /auth/v1/recover* -> http://auth:9999/recover*'
++    url: http://auth:9999/recover
++    routes:
++      - name: auth-v1-recover
++        strip_path: true
++        paths:
++          - /auth/v1/recover
++        plugins:
++          - name: rate-limiting
++            config:
++              minute: 5
++              hour: 20
++              policy: local
++              limit_by: ip
++    plugins: *auth-v1-plugins
++  - name: auth-v1-otp
++    _comment: 'Auth: /auth/v1/otp* -> http://auth:9999/otp*'
++    url: http://auth:9999/otp
++    routes:
++      - name: auth-v1-otp
++        strip_path: true
++        paths:
++          - /auth/v1/otp
++        plugins:
++          - name: rate-limiting
++            config:
++              minute: 5
++              hour: 20
++              policy: local
++              limit_by: ip
++    plugins: *auth-v1-plugins
++  - name: auth-v1-resend
++    _comment: 'Auth: /auth/v1/resend* -> http://auth:9999/resend*'
++    url: http://auth:9999/resend
++    routes:
++      - name: auth-v1-resend
++        strip_path: true
++        paths:
++          - /auth/v1/resend
++        plugins:
++          - name: rate-limiting
++            config:
++              minute: 5
++              hour: 20
++              policy: local
++              limit_by: ip
++    plugins: *auth-v1-plugins
++  - name: auth-v1-magiclink
++    _comment: 'Auth: /auth/v1/magiclink* -> http://auth:9999/magiclink*'
++    url: http://auth:9999/magiclink
++    routes:
++      - name: auth-v1-magiclink
++        strip_path: true
++        paths:
++          - /auth/v1/magiclink
++        plugins:
++          - name: rate-limiting
++            config:
++              minute: 5
++              hour: 20
++              policy: local
++              limit_by: ip
++    plugins: *auth-v1-plugins
++
+   ## OpenAPI root - admin only
+   - name: rest-v1-openapi
+     _comment: 'PostgREST OpenAPI root: /rest/v1/ -> <http://rest:3000/> (admin only). See <https://github.com/orgs/supabase/discussions/42949>'
