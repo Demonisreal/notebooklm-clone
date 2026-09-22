@@ -4,6 +4,8 @@ import type { NextConfig } from 'next';
 const config: NextConfig = {
 	transpilePackages: ['shared'],
 	poweredByHeader: false,
+	// nothing uses next/image, so /_next/image answers 404 instead of running the optimizer
+	images: { unoptimized: true },
 	// standalone pulls only the files that are actually used into the image
 	output: 'standalone',
 	outputFileTracingRoot: join(import.meta.dirname, '../..')
