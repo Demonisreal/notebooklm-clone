@@ -9,6 +9,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
+import { demoEmail, isDemo } from './demo';
 import { DemoLimitService, type DemoBucket } from './demo-limit.service';
 import type { AuthUser } from './jwt.guard';
 
@@ -29,7 +30,7 @@ export class DemoLimitGuard implements CanActivate {
 		private readonly limits: DemoLimitService,
 		config: ConfigService
 	) {
-		this.demoEmail = config.get<string>('DEMO_USER_EMAIL')?.toLowerCase() ?? null;
+		this.demoEmail = demoEmail(config);
 	}
 
 	canActivate(context: ExecutionContext): boolean {
@@ -43,7 +44,7 @@ export class DemoLimitGuard implements CanActivate {
 
 		const request = context.switchToHttp().getRequest<Request>();
 		const user: AuthUser | undefined = request.user;
-		if (user?.email?.toLowerCase() !== this.demoEmail) return true;
+		if (!isDemo(user, this.demoEmail)) return true;
 
 		const limit = this.limits.take(bucket, request.ip ?? '');
 		if (limit === 'hourly') {
