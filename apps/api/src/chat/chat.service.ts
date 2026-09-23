@@ -4,8 +4,10 @@ import {
 	InternalServerErrorException,
 	NotFoundException
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { ChatMessage, ChatRequestInput, ChatStreamEvent, Citation } from 'shared';
+import { demoEmail, isDemo } from '../auth/demo';
 import type { AuthUser } from '../auth/jwt.guard';
 import { LLM_PROVIDER, LlmProvider } from '../llm/llm.provider';
 import { SupabaseService } from '../supabase/supabase.service';
@@ -15,11 +17,16 @@ import { RetrievalService } from './retrieval.service';
 
 @Injectable()
 export class ChatService {
+	private readonly demoEmail: string | null;
+
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly retrieval: RetrievalService,
-		@Inject(LLM_PROVIDER) private readonly llm: LlmProvider
-	) {}
+		@Inject(LLM_PROVIDER) private readonly llm: LlmProvider,
+		config: ConfigService
+	) {
+		this.demoEmail = demoEmail(config);
+	}
 
 	async *ask(
 		user: AuthUser,
@@ -28,9 +35,13 @@ export class ChatService {
 		signal: AbortSignal
 	): AsyncIterable<ChatStreamEvent> {
 		const db = this.supabase.forUser(user.token);
+		// every visitor shares the demo account, a stored question would be readable by the next one
+		const demo = isDemo(user, this.demoEmail);
 
-		const conversationId = await this.conversation(db, user, notebookId, input);
-		await this.saveMessage(db, conversationId, 'user', input.message, []);
+		const conversationId = demo
+			? (input.conversationId ?? crypto.randomUUID())
+			: await this.conversation(db, user, notebookId, input);
+		if (!demo) await this.saveMessage(db, conversationId, 'user', input.message, []);
 
 		const blocks = await this.retrieval.search(db, notebookId, input.message, input.sourceIds);
 		const prompt = buildPrompt(input.message, blocks);
@@ -56,11 +67,13 @@ export class ChatService {
 		const { text, citations } = resolveCitations(raw, blocks);
 		yield { type: 'citations', text, items: citations };
 
-		await this.saveMessage(db, conversationId, 'assistant', text, citations);
+		if (!demo) await this.saveMessage(db, conversationId, 'assistant', text, citations);
 		yield { type: 'done' };
 	}
 
 	async conversations(user: AuthUser, notebookId: string) {
+		if (isDemo(user, this.demoEmail)) return [];
+
 		const { data, error } = await this.supabase
 			.forUser(user.token)
 			.from('conversations')
@@ -73,6 +86,8 @@ export class ChatService {
 	}
 
 	async messages(user: AuthUser, conversationId: string): Promise<ChatMessage[]> {
+		if (isDemo(user, this.demoEmail)) return [];
+
 		const { data, error } = await this.supabase
 			.forUser(user.token)
 			.from('messages')

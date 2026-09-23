@@ -17,7 +17,7 @@ Upload sources, chat with them, and trace every statement in an answer back to t
 
 The account comes with a prepared notebook and two fully processed sources, so there is something to look at before uploading anything.
 
-It is read-only: chat, citations and studio work, but uploading, renaming and deleting are rejected by the API. That way the example notebook is still intact for the next visitor. To put your own sources in, create an account in the same interface.
+It is read-only: chat, citations and studio work, but uploading, renaming and deleting are rejected by the API. That way the example notebook is still intact for the next visitor. Chats in this account are not saved, so nobody gets to read what an earlier visitor asked. To put your own sources in, create an account in the same interface.
 
 Chat and studio are rationed for this account so the Gemini bill stays bounded: 10 questions and 3 studio generations per hour per visitor, 200 requests a day for everyone together. Past that the app says the demo limit has been reached.
 
@@ -157,7 +157,7 @@ DEMO_PASSWORD=secret pnpm seed:demo
 ## Tests
 
 ```bash
-pnpm test     # 64 tests, 75 with Supabase running
+pnpm test     # 68 tests, 79 with Supabase running
 ```
 
 No coverage theatre, but tests where logic can be **silently** wrong:
@@ -174,6 +174,7 @@ No coverage theatre, but tests where logic can be **silently** wrong:
 | `fake.provider.spec.ts`    | Embeddings are reproducible and normalised                                                                                                                                                                             |
 | `demo-write.guard.spec.ts` | The public demo account is refused on write routes and let through everywhere else, and the guard stays inert when no demo account is configured                                                                       |
 | `demo-limit.guard.spec.ts` | The demo account gets a 429 past its hourly limit per address and past the daily cap, which resets at midnight in Berlin; other accounts are never counted, and `X-Forwarded-For` is only believed from a private peer |
+| `chat.service.spec.ts`     | The demo account gets its answers without a single write, even when the client sends a conversation id along, and it is handed no stored chats; other accounts keep their history                                      |
 
 `match-chunks.spec.ts` and `login-lockout.spec.ts` skip themselves when no Supabase is configured. The latter goes through GoTrue itself: five misses lock an account even against the right password, parallel guesses are counted one by one, and the demo account is never locked.
 

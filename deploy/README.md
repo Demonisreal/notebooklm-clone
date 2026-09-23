@@ -66,7 +66,7 @@ DEMO_PASSWORD=<password> \
 node scripts/seed-demo.mjs
 ```
 
-If the demo is public, `DEMO_USER_EMAIL=demo@notebook.local` belongs in the `.env` afterwards and the `api` service has to be restarted. The demo login can then only read and chat; uploading, renaming and deleting are rejected by the API, and the example notebook survives for the next visitor.
+If the demo is public, `DEMO_USER_EMAIL=demo@notebook.local` belongs in the `.env` afterwards and the `api` service has to be restarted. The demo login can then only read and chat; uploading, renaming and deleting are rejected by the API, and the example notebook survives for the next visitor. Its chats are not stored either, as long as `DEMO_USER_EMAIL` is set.
 
 Mind the order: `seed-demo.mjs` and `reembed-all.mjs` work through those blocked routes themselves. Both only run while `DEMO_USER_EMAIL` is **not** set — to top up the data, remove it, restart `api`, run the script, put it back.
 
