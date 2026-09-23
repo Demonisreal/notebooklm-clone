@@ -52,6 +52,16 @@ describe('resolveCitations', () => {
 		expect(text).toBe('One sentence.');
 	});
 
+	it('keeps the indent of nested list items', () => {
+		const { text } = resolveCitations(
+			'*   **Warranty:**\n    *   24 months [1].\n    *   36 for existing customers [7] [2] .',
+			blocks
+		);
+		expect(text).toBe(
+			'* **Warranty:**\n    * 24 months [1].\n    * 36 for existing customers [2].'
+		);
+	});
+
 	it('copes without any references', () => {
 		const { text, citations } = resolveCitations('The sources say nothing about that.', blocks);
 		expect(text).toBe('The sources say nothing about that.');

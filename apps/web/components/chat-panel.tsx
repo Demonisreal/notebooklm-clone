@@ -1,15 +1,9 @@
 'use client';
 
 import { ArrowUp, BookmarkPlus, Square } from 'lucide-react';
-import {
-	cloneElement,
-	type ReactElement,
-	type ReactNode,
-	useEffect,
-	useRef,
-	useState
-} from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import type { ChatMessage, Citation } from 'shared';
+import { type AnswerList, parseAnswer } from '@/lib/answer';
 import { streamChat } from '@/lib/chat-stream';
 import { cn } from '@/lib/cn';
 
@@ -255,26 +249,16 @@ function Bubble({
 		);
 	}
 
-	const blocks = renderAnswer(message.content, message.citations, onCite);
-	const last = blocks[blocks.length - 1];
-	const cursor = (
-		<span
-			key="cursor"
-			className="ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 animate-pulse bg-[var(--color-accent)]"
-		/>
+	const cursor = pending && (
+		<span className="ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 animate-pulse bg-[var(--color-accent)]" />
 	);
-	// before the first delta there is no block for the cursor to hang on
-	const body =
-		pending && last
-			? [...blocks.slice(0, -1), cloneElement(last, undefined, last.props.children, cursor)]
-			: pending
-				? [cursor]
-				: blocks;
+	const blocks = renderAnswer(message.content, message.citations, onCite, cursor);
 
 	// a <ul> must not sit inside a <p>, hence div instead of p
 	return (
 		<div className="animate-rise group mb-8">
-			<div className="space-y-1.5 leading-[1.75]">{body}</div>
+			{/* before the first delta there is no block for the cursor to hang on */}
+			<div className="space-y-1.5 leading-[1.75]">{blocks.length > 0 ? blocks : cursor}</div>
 
 			{!pending && (
 				<div className="mt-3 flex items-center gap-3">
@@ -332,47 +316,59 @@ function renderInline(text: string, citations: Citation[], onCite: (c: Citation)
 	});
 }
 
-function renderAnswer(content: string, citations: Citation[], onCite: (c: Citation) => void) {
-	const blocks: ReactElement<{ children?: ReactNode }>[] = [];
-	let items: string[] = [];
+// tail is the streaming cursor, it goes at the very end of the text, however deep that is
+export function renderAnswer(
+	content: string,
+	citations: Citation[],
+	onCite: (c: Citation) => void,
+	tail?: ReactNode
+) {
+	const blocks = parseAnswer(content);
 
-	function flushList() {
-		if (!items.length) return;
-		blocks.push(
-			<ul key={blocks.length} className="list-disc space-y-1 pl-5">
-				{items.map((item, i) => (
-					<li key={i}>{renderInline(item, citations, onCite)}</li>
-				))}
-			</ul>
+	return blocks.map((block, i) => {
+		const end = i === blocks.length - 1 && tail;
+		if (block.kind === 'list') return renderList(block.list, i, citations, onCite, end);
+
+		return (
+			<p key={i} className={block.kind === 'heading' ? 'font-semibold' : undefined}>
+				{renderInline(block.text, citations, onCite)}
+				{end}
+			</p>
 		);
-		items = [];
-	}
+	});
+}
 
-	for (const line of content.split('\n')) {
-		const bullet = /^[*-]\s+(.*)$/.exec(line);
-		if (bullet) {
-			items.push(bullet[1]);
-			continue;
-		}
+function renderList(
+	list: AnswerList,
+	key: number,
+	citations: Citation[],
+	onCite: (c: Citation) => void,
+	tail: ReactNode,
+	depth = 0
+) {
+	const entries = list.entries.map((entry, i) => {
+		const end = i === list.entries.length - 1 && tail;
+		const inner = entry.lists.length - 1;
 
-		flushList();
+		return (
+			<li key={i}>
+				{renderInline(entry.text, citations, onCite)}
+				{inner < 0 && end}
+				{entry.lists.map((sub, j) =>
+					renderList(sub, j, citations, onCite, j === inner && end, depth + 1)
+				)}
+			</li>
+		);
+	});
+	const spacing = cn('space-y-1 pl-5', depth > 0 && 'mt-1');
 
-		if (!line.trim()) continue;
-
-		const heading = /^#+\s*(.*)$/.exec(line);
-		if (heading) {
-			blocks.push(
-				<p key={blocks.length} className="font-semibold">
-					{renderInline(heading[1], citations, onCite)}
-				</p>
-			);
-			continue;
-		}
-
-		blocks.push(<p key={blocks.length}>{renderInline(line, citations, onCite)}</p>);
-	}
-
-	flushList();
-
-	return blocks;
+	return list.ordered ? (
+		<ol key={key} start={list.start} className={cn('list-decimal', spacing)}>
+			{entries}
+		</ol>
+	) : (
+		<ul key={key} className={cn(depth > 0 ? 'list-[circle]' : 'list-disc', spacing)}>
+			{entries}
+		</ul>
+	);
 }
