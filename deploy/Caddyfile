@@ -43,4 +43,11 @@
 	# the studio is not meant to be public
 	@studio path /studio* /project*
 	respond @studio 404
+
+	# the browser only talks to auth, realtime and signed storage urls, data goes through the api
+	@direct {
+		path /rest/v1* /graphql/v1* /storage/v1*
+		not path /storage/v1/object/sign/* /storage/v1/object/upload/sign/*
+	}
+	respond @direct 404
 }
