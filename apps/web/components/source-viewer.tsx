@@ -3,6 +3,7 @@
 import { Highlighter, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api';
+import { reflow } from '@/lib/reflow';
 
 type Props = {
 	sourceId: string;
@@ -15,19 +16,30 @@ type SourceText = { id: string; title: string; kind: string; text: string };
 export function SourceViewer({ sourceId, highlight, onClose }: Props) {
 	const [source, setSource] = useState<SourceText | null>(null);
 	const [error, setError] = useState<string | null>(null);
-	const marked = useRef<HTMLSpanElement>(null);
+	const marked = useRef<HTMLElement>(null);
+	const pane = useRef<HTMLDivElement>(null);
+	const shown = useRef(false);
 
 	useEffect(() => {
-		setSource(null);
-		setError(null);
 		api<SourceText>(`/sources/${sourceId}/text`)
 			.then(setSource)
 			.catch((err) => setError(err instanceof Error ? err.message : 'Could not load the source'));
 	}, [sourceId]);
 
-	// a chunk is long, with 'center' you end up in the middle of it instead of at the top
 	useEffect(() => {
-		if (source && highlight) marked.current?.scrollIntoView({ block: 'start' });
+		if (!source) return;
+
+		const mark = marked.current;
+		if (mark && pane.current) {
+			const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+			mark.scrollIntoView({
+				// a chunk can be taller than the panel, centered its start would sit above the fold
+				block: mark.offsetHeight < pane.current.clientHeight ? 'center' : 'start',
+				// freshly loaded text just jumps, only a jump within text already on screen glides
+				behavior: shown.current && !reduced ? 'smooth' : 'auto'
+			});
+		}
+		shown.current = true;
 	}, [source, highlight]);
 
 	return (
@@ -51,7 +63,7 @@ export function SourceViewer({ sourceId, highlight, onClose }: Props) {
 				</button>
 			</header>
 
-			<div className="flex-1 overflow-y-auto px-5 py-5">
+			<div ref={pane} className="flex-1 overflow-y-auto px-5 py-5">
 				{error && (
 					<p className="rounded-lg bg-[var(--color-bad-soft)] px-3 py-2 text-sm text-[var(--color-bad)]">
 						{error}
@@ -71,20 +83,21 @@ export function SourceViewer({ sourceId, highlight, onClose }: Props) {
 				)}
 
 				{source && (
-					<article className="animate-fade whitespace-pre-wrap font-serif text-[15px] leading-[1.85]">
-						{segments(source.text, highlight).map((segment, i) =>
-							segment.marked ? (
-								// a solid block of yellow over a whole chunk buries the text
-								<mark
-									key={i}
-									ref={marked}
-									className="-mx-2 my-1 block rounded-r border-l-[3px] border-[var(--color-warn)] bg-[color-mix(in_oklab,var(--color-mark)_22%,transparent)] px-2 py-1 text-[var(--color-fg)]"
-								>
-									{segment.text}
-								</mark>
-							) : (
-								<span key={i}>{segment.text}</span>
-							)
+					<article className="animate-fade whitespace-pre-wrap text-[15px] leading-[1.75]">
+						{segments(source.kind === 'pdf' ? reflow(source.text) : source.text, highlight).map(
+							(segment, i) =>
+								segment.marked ? (
+									// a solid block of yellow over a whole chunk buries the text
+									<mark
+										key={i}
+										ref={marked}
+										className="-mx-2 my-1 block scroll-mt-5 rounded-r border-l-[3px] border-[var(--color-warn)] bg-[color-mix(in_oklab,var(--color-mark)_22%,transparent)] px-2 py-1 text-[var(--color-fg)]"
+									>
+										{segment.text}
+									</mark>
+								) : (
+									<span key={i}>{segment.text}</span>
+								)
 						)}
 					</article>
 				)}

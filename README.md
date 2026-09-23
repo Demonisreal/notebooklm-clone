@@ -157,7 +157,7 @@ DEMO_PASSWORD=secret pnpm seed:demo
 ## Tests
 
 ```bash
-pnpm test     # 78 tests, 89 with Supabase running
+pnpm test     # 86 tests, 97 with Supabase running
 ```
 
 No coverage theatre, but tests where logic can be **silently** wrong:
@@ -176,6 +176,7 @@ No coverage theatre, but tests where logic can be **silently** wrong:
 | `demo-limit.guard.spec.ts` | The demo account gets a 429 past its hourly limit per address and past the daily cap, which resets at midnight in Berlin; other accounts are never counted, and `X-Forwarded-For` is only believed from a private peer |
 | `chat.service.spec.ts`     | The demo account gets its answers without a single write, even when the client sends a conversation id along, and it is handed no stored chats; other accounts keep their history                                      |
 | `answer.spec.ts`           | Indented bullets and numbered items in an answer come out as nested lists, including the one-space indent the API used to leave                                                                                        |
+| `reflow.spec.ts`           | PDF lines are only joined where the page layout wrapped them, headings and list items keep their line, and no character moves, so the citation offsets still hit                                                       |
 
 `match-chunks.spec.ts` and `login-lockout.spec.ts` skip themselves when no Supabase is configured. The latter goes through GoTrue itself: five misses lock an account even against the right password, parallel guesses are counted one by one, and the demo account is never locked.
 
