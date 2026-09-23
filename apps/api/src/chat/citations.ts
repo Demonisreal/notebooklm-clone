@@ -55,10 +55,10 @@ function snippet(content: string): string {
 	return `${flat.slice(0, SNIPPET_CHARS)}…`;
 }
 
-// removing markers leaves double spaces and spaces in front of punctuation
+// removing markers leaves double spaces and spaces before punctuation, list indents stay
 function tidy(text: string): string {
 	return text
-		.replace(/ {2,}/g, ' ')
+		.replace(/(?<=\S) {2,}/g, ' ')
 		.replace(/ ([.,;:!?])/g, '$1')
 		.trim();
 }
