@@ -10,6 +10,7 @@ import {
 	useState
 } from 'react';
 import type { ChatMessage, Citation } from 'shared';
+import { type AnswerList, parseAnswer } from '@/lib/answer';
 import { streamChat } from '@/lib/chat-stream';
 import { cn } from '@/lib/cn';
 
@@ -332,47 +333,44 @@ function renderInline(text: string, citations: Citation[], onCite: (c: Citation)
 	});
 }
 
-function renderAnswer(content: string, citations: Citation[], onCite: (c: Citation) => void) {
-	const blocks: ReactElement<{ children?: ReactNode }>[] = [];
-	let items: string[] = [];
+function renderAnswer(
+	content: string,
+	citations: Citation[],
+	onCite: (c: Citation) => void
+): ReactElement<{ children?: ReactNode }>[] {
+	return parseAnswer(content).map((block, i) => {
+		if (block.kind === 'list') return renderList(block.list, i, citations, onCite);
 
-	function flushList() {
-		if (!items.length) return;
-		blocks.push(
-			<ul key={blocks.length} className="list-disc space-y-1 pl-5">
-				{items.map((item, i) => (
-					<li key={i}>{renderInline(item, citations, onCite)}</li>
-				))}
-			</ul>
+		return (
+			<p key={i} className={block.kind === 'heading' ? 'font-semibold' : undefined}>
+				{renderInline(block.text, citations, onCite)}
+			</p>
 		);
-		items = [];
-	}
+	});
+}
 
-	for (const line of content.split('\n')) {
-		const bullet = /^[*-]\s+(.*)$/.exec(line);
-		if (bullet) {
-			items.push(bullet[1]);
-			continue;
-		}
+function renderList(
+	list: AnswerList,
+	key: number,
+	citations: Citation[],
+	onCite: (c: Citation) => void,
+	depth = 0
+) {
+	const entries = list.entries.map((entry, i) => (
+		<li key={i}>
+			{renderInline(entry.text, citations, onCite)}
+			{entry.lists.map((sub, j) => renderList(sub, j, citations, onCite, depth + 1))}
+		</li>
+	));
+	const spacing = cn('space-y-1 pl-5', depth > 0 && 'mt-1');
 
-		flushList();
-
-		if (!line.trim()) continue;
-
-		const heading = /^#+\s*(.*)$/.exec(line);
-		if (heading) {
-			blocks.push(
-				<p key={blocks.length} className="font-semibold">
-					{renderInline(heading[1], citations, onCite)}
-				</p>
-			);
-			continue;
-		}
-
-		blocks.push(<p key={blocks.length}>{renderInline(line, citations, onCite)}</p>);
-	}
-
-	flushList();
-
-	return blocks;
+	return list.ordered ? (
+		<ol key={key} start={list.start} className={cn('list-decimal', spacing)}>
+			{entries}
+		</ol>
+	) : (
+		<ul key={key} className={cn(depth > 0 ? 'list-[circle]' : 'list-disc', spacing)}>
+			{entries}
+		</ul>
+	);
 }
