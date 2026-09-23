@@ -209,7 +209,9 @@ export default function NotebookPage({ params }: { params: Promise<{ id: string 
 
 				<section className={cn('min-h-0 md:block', tab === 'studio' ? 'block' : 'hidden')}>
 					{viewer ? (
+						// remount per source, or the old text shows up for a moment under the new offsets
 						<SourceViewer
+							key={viewer.sourceId}
 							sourceId={viewer.sourceId}
 							highlight={viewer.highlight}
 							onClose={() => setViewer(null)}
