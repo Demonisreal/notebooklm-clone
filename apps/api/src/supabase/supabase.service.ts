@@ -18,7 +18,6 @@ export class SupabaseService {
 		});
 	}
 
-	// with the user token rls stays in play, so a controller bug does not leak data outright
 	forUser(token: string): SupabaseClient {
 		return createClient(this.url, this.publishableKey, {
 			auth: { persistSession: false, autoRefreshToken: false },
@@ -26,12 +25,10 @@ export class SupabaseService {
 		});
 	}
 
-	// only for the ingestion, where no user context is left
 	asAdmin(): SupabaseClient {
 		return this.admin;
 	}
 
-	// signed links are built from the internal base, but they open in the browser
 	toPublicUrl(url: string): string {
 		return url.startsWith(this.url) ? this.publicUrl + url.slice(this.url.length) : url;
 	}

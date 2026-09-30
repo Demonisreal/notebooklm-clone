@@ -8,7 +8,6 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-	// the csp nonce is set per request, a prerendered page would ship scripts without it
 	await connection();
 
 	return (

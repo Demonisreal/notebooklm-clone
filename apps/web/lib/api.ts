@@ -2,7 +2,6 @@ import { supabase } from './supabase';
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
-// only the public demo account gets a 429, the api's own wording is meant for api clients
 export const DEMO_LIMIT_MESSAGE = 'The demo limit has been reached. Please try again later.';
 
 export class ApiError extends Error {
@@ -33,12 +32,10 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
 
 	if (!response.ok) throw new ApiError(await readError(response), response.status);
 
-	// nest sends an empty body with 200 for null, json() would choke on that
 	const body = await response.text();
 	return (body ? JSON.parse(body) : null) as T;
 }
 
-// the stream needs the token just the same, but it does not go through json
 export async function apiStream(path: string, body: unknown, signal?: AbortSignal) {
 	return fetch(`${BASE}${path}`, {
 		method: 'POST',

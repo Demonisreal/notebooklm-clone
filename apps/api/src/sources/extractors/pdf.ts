@@ -15,7 +15,6 @@ export async function extractPdf(buffer: Buffer): Promise<Extracted> {
 		text += PAGE_SEPARATOR;
 	}
 
-	// scanned pdfs come with a text layer of almost nothing but whitespace
 	if (text.trim().length < 20) {
 		throw new UnsupportedSourceError(
 			'No text can be read from this PDF – most likely a scan without OCR.'

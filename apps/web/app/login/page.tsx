@@ -35,7 +35,6 @@ export default function LoginPage() {
 	return (
 		<main className="grid min-h-screen lg:grid-cols-[1fr_minmax(0,520px)]">
 			<section className="relative hidden overflow-hidden border-r border-[var(--color-line)] bg-[var(--color-panel)] lg:block">
-				{/* soft glow so the panel does not feel dead */}
 				<div
 					aria-hidden
 					className="pointer-events-none absolute -left-32 -top-40 h-[560px] w-[560px] rounded-full opacity-60 blur-3xl"
@@ -106,7 +105,6 @@ export default function LoginPage() {
 							value={password}
 							onChange={setPassword}
 							placeholder={mode === 'signup' ? 'at least 10 characters' : undefined}
-							// older accounts may still have shorter passwords, so only sign-up checks
 							minLength={mode === 'signup' ? 10 : undefined}
 						/>
 					</div>
@@ -183,7 +181,6 @@ function Field({
 }
 
 function friendly(message: string): string {
-	// a locked account gets the same answer from gotrue, so the pause is mentioned here
 	if (message.includes('Invalid login credentials'))
 		return 'That email or password is wrong. After several failed attempts sign-in pauses for 15 minutes.';
 	if (message.includes('already been registered')) return 'That email is already taken.';

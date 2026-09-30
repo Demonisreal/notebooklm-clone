@@ -28,7 +28,6 @@ function seeded(seed: number): () => number {
 	};
 }
 
-// deterministic so tests stay reproducible - nothing semantic about it
 @Injectable()
 export class FakeProvider implements LlmProvider {
 	async embed(texts: string[]): Promise<number[][]> {
@@ -50,7 +49,6 @@ export class FakeProvider implements LlmProvider {
 		const seconds = Math.min(20, Math.max(2, Math.round(dialogue.length / 90)));
 		const pcm = Buffer.alloc(sampleRate * seconds * 2);
 
-		// a quiet sine wave so the player has something to play in dev mode
 		for (let i = 0; i < pcm.length / 2; i++) {
 			pcm.writeInt16LE(Math.round(Math.sin((i / sampleRate) * 2 * Math.PI * 220) * 2200), i * 2);
 		}
@@ -75,7 +73,6 @@ function countContextBlocks(prompt: string): number {
 	return prompt.match(/^\[\d+\]/gm)?.length ?? 0;
 }
 
-// the studio outputs should stay workable without an api key
 function looksLikeJsonRequest(prompt: string): boolean {
 	return prompt.includes('as JSON');
 }
@@ -93,7 +90,6 @@ function buildAnswer(blocks: number): string {
 		return 'The selected sources say nothing about that.';
 	}
 
-	// [99] is deliberate: the citation parser has to drop hallucinated numbers
 	const cited =
 		blocks >= 2
 			? 'According to the sources this holds [1] and so does that [2].'

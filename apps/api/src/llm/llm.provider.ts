@@ -22,7 +22,6 @@ export interface LlmProvider {
 	speak(dialogue: string, speakers: Speaker[]): Promise<SpokenAudio>;
 }
 
-// cosine needs length 1 and not every model delivers that
 export function normalize(vector: number[]): number[] {
 	let sum = 0;
 	for (const value of vector) sum += value * value;

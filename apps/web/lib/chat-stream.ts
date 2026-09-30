@@ -27,7 +27,6 @@ export async function* streamChat(
 
 		buffer += decoder.decode(value, { stream: true });
 		const lines = buffer.split('\n');
-		// the last line can be incomplete, that one stays in the buffer
 		buffer = lines.pop() ?? '';
 
 		for (const line of lines) {

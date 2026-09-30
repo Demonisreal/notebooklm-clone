@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { type AnswerBlock, type AnswerList, parseAnswer } from './answer';
 
-// the tree written back as an indented outline, easier to compare than nested objects
 function outline(blocks: AnswerBlock[]): string[] {
 	const lines: string[] = [];
 

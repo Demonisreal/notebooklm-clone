@@ -1,6 +1,5 @@
 const HEADER_BYTES = 44;
 
-// gemini returns raw pcm without a container, no browser can do anything with that
 export function toWav(pcm: Buffer, sampleRate: number, channels = 1, bitsPerSample = 16): Buffer {
 	const blockAlign = (channels * bitsPerSample) / 8;
 	const header = Buffer.alloc(HEADER_BYTES);

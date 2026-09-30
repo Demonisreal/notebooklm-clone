@@ -25,7 +25,6 @@ export class ChatController {
 			'Content-Type': 'text/event-stream',
 			'Cache-Control': 'no-cache',
 			Connection: 'keep-alive',
-			// proxies buffer sse otherwise and the stream arrives in fits and starts
 			'X-Accel-Buffering': 'no'
 		});
 		response.flushHeaders();

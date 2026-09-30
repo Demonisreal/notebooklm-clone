@@ -13,7 +13,6 @@ export const uploadUrlSchema = z.object({
 	size: z.number().int().positive().max(MAX_UPLOAD_BYTES)
 });
 
-// a source arrives either as a file, as a url or as pasted text
 export const createSourceSchema = z.discriminatedUnion('kind', [
 	z.object({
 		kind: z.literal('file'),

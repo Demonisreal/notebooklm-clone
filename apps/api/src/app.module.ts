@@ -19,7 +19,6 @@ import { SupabaseModule } from './supabase/supabase.module';
 	imports: [
 		ConfigModule.forRoot({
 			isGlobal: true,
-			// absolute, so the start does not depend on the working directory
 			envFilePath: join(__dirname, '..', '.env'),
 			validate: loadConfig
 		}),
@@ -31,7 +30,6 @@ import { SupabaseModule } from './supabase/supabase.module';
 		NotesModule,
 		StudioModule
 	],
-	// order matters: the JwtGuard runs first and sets request.user
 	providers: [
 		{ provide: APP_GUARD, useClass: JwtGuard },
 		{ provide: APP_GUARD, useClass: DemoWriteGuard },

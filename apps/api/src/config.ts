@@ -4,17 +4,12 @@ const schema = z.object({
 	PORT: z.coerce.number().default(3001),
 	WEB_ORIGIN: z.string().default('http://localhost:3000'),
 
-	// reachable internally; behind a reverse proxy the container cannot get back
-	// to itself through the public address
 	SUPABASE_URL: z.string().url(),
-	// ends up in links that the browser opens (upload, audio)
 	SUPABASE_PUBLIC_URL: z.string().url().optional(),
 	SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
 	SUPABASE_SECRET_KEY: z.string().min(1),
 	SUPABASE_JWT_ISSUER: z.string().url(),
-	// the public demo account, read only
 	DEMO_USER_EMAIL: z.string().optional(),
-	// only the demo account is limited, everything that reaches gemini counts
 	DEMO_CHAT_PER_HOUR: z.coerce.number().int().positive().default(10),
 	DEMO_STUDIO_PER_HOUR: z.coerce.number().int().positive().default(3),
 	DEMO_DAILY_CAP: z.coerce.number().int().positive().default(200),

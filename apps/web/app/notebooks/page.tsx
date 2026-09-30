@@ -12,7 +12,6 @@ export default function NotebooksPage() {
 	const [notebooks, setNotebooks] = useState<Notebook[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [creating, setCreating] = useState(false);
-	// two steps instead of confirm(), so no browser dialog blocks the flow
 	const [confirming, setConfirming] = useState<string | null>(null);
 
 	const load = useCallback(async () => {

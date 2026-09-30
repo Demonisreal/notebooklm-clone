@@ -30,7 +30,6 @@ export class IngestionService implements OnApplicationBootstrap {
 		@Inject(LLM_PROVIDER) private readonly llm: LlmProvider
 	) {}
 
-	// in-process work does not survive a restart, otherwise sources hang on processing forever
 	async onApplicationBootstrap() {
 		const cutoff = new Date(Date.now() - STALE_AFTER_MINUTES * 60_000).toISOString();
 		const { data } = await this.supabase
@@ -47,7 +46,6 @@ export class IngestionService implements OnApplicationBootstrap {
 		if (data?.length) this.log.warn(`${data.length} interrupted source(s) reset`);
 	}
 
-	// runs without await in the controller on purpose, the status lives in the db
 	async run(sourceId: string): Promise<void> {
 		const db = this.supabase.asAdmin();
 
@@ -97,7 +95,6 @@ export class IngestionService implements OnApplicationBootstrap {
 			return fetchArticle(source.source_url);
 		}
 
-		// txt and md arrive either as pasted text or as a file upload
 		if (source.kind === 'text' || source.kind === 'markdown') {
 			const raw = source.storage_path
 				? (await this.download(db, source)).toString('utf8')
@@ -138,7 +135,6 @@ export class IngestionService implements OnApplicationBootstrap {
 				notebook_id: source.notebook_id,
 				idx: c.idx,
 				content: c.content,
-				// chunks run across page boundaries, the middle hits more often than the start
 				page: pageForOffset(extracted.pageStarts, Math.floor((c.charStart + c.charEnd) / 2)),
 				char_start: c.charStart,
 				char_end: c.charEnd,
