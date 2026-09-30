@@ -1,7 +1,5 @@
--- loads pgvector, otherwise hnsw.iterative_scan below is only a placeholder
 do $$ begin perform '[1]'::vector; end $$;
 
--- websearch_to_tsquery joins terms with AND, so "notice period and warranty" finds nothing
 create or replace function to_or_tsquery(p_config regconfig, p_text text)
 returns tsquery
 language sql
@@ -16,7 +14,6 @@ as $$
 	)::tsquery;
 $$;
 
--- vector plus full text via rrf, because vectors are weak on section numbers and figures
 create or replace function match_chunks(
 	p_notebook_id uuid,
 	p_source_ids uuid[],
@@ -35,12 +32,9 @@ returns table (
 )
 language plpgsql
 stable
--- without this, deselected sources return nothing: the index pulls
--- ef_search candidates and the filter drops them. attribute, because stable forbids SET
 set hnsw.iterative_scan = 'relaxed_order'
 as $$
 declare
-	-- language of the question is unknown, so match against both configurations
 	q_de tsquery := to_or_tsquery('german', p_query_text);
 	q_en tsquery := to_or_tsquery('english', p_query_text);
 	k constant int := 60;

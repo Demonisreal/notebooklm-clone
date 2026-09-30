@@ -18,7 +18,6 @@ export class GeminiProvider implements LlmProvider {
 	private readonly embeddingModel: string;
 	private readonly ttsModel: string;
 
-	// free tier ~10 rpm, without throttling a big pdf hits 429 right away
 	private readonly limiter = new Bottleneck({ minTime: 5000, maxConcurrent: 1 });
 
 	constructor(config: ConfigService) {
@@ -94,7 +93,6 @@ export class GeminiProvider implements LlmProvider {
 
 		const body = (await response.json()) as { embeddings: { values: number[] }[] };
 
-		// embedding-2 arrives normalized, -001 at 768 does not (measured 0.59)
 		return body.embeddings.map((embedding) => normalize(embedding.values));
 	}
 

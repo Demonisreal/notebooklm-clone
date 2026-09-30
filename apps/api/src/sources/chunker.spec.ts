@@ -42,7 +42,6 @@ describe('chunk', () => {
 		expect(chunks[0].charStart).toBe(0);
 		expect(chunks.at(-1)!.charEnd).toBe(text.length);
 
-		// every chunk has to start where the previous one already was, or earlier
 		for (let i = 1; i < chunks.length; i++) {
 			expect(chunks[i].charStart).toBeLessThanOrEqual(chunks[i - 1].charEnd);
 		}

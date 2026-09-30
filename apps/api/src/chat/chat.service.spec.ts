@@ -23,7 +23,6 @@ function service() {
 	const from = vi.fn((table: string) => ({
 		insert(row: Record<string, unknown>) {
 			inserts.push({ table, row });
-			// messages await the insert itself, the new conversation chains select().single()
 			return {
 				select: () => ({ single: async () => ({ data: { id: 'c-new' }, error: null }) }),
 				then: (done: (value: { error: null }) => void) => done({ error: null })

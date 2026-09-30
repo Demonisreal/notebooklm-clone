@@ -9,7 +9,6 @@ async function bootstrap() {
 	const app = await NestFactory.create<NestExpressApplication>(AppModule);
 	const config = app.get(ConfigService);
 
-	// request.ip has to be the visitor behind caddy, the demo limits are counted per address
 	app.set('trust proxy', TRUSTED_PROXIES);
 
 	app.enableCors({

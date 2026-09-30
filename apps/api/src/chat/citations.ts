@@ -10,11 +10,9 @@ export type ContextBlock = {
 	content: string;
 };
 
-// gemini likes to group several references as [1, 2, 5], so pick those up as well
 const MARKER = /\[(\d+(?:\s*,\s*\d+)*)\]/g;
 const SNIPPET_CHARS = 220;
 
-// models invent references that do not exist - those get thrown out
 export function resolveCitations(text: string, blocks: ContextBlock[]) {
 	const renumbered = new Map<number, number>();
 
@@ -55,7 +53,6 @@ function snippet(content: string): string {
 	return `${flat.slice(0, SNIPPET_CHARS)}…`;
 }
 
-// removing markers leaves double spaces and spaces before punctuation, list indents stay
 function tidy(text: string): string {
 	return text
 		.replace(/(?<=\S) {2,}/g, ' ')

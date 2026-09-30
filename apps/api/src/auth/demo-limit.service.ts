@@ -6,11 +6,8 @@ export type DemoBucket = 'chat' | 'studio';
 const HOUR = 60 * 60 * 1000;
 const SWEEP_EVERY = 10 * 60 * 1000;
 
-// the day flips at midnight in Berlin, not UTC, so the reset lands where the operator expects it
 const berlinDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' });
 
-// Counters live in memory: there is exactly one api container, and a restart that hands
-// out a fresh budget is acceptable for a demo. From a second container on this needs Postgres.
 @Injectable()
 export class DemoLimitService {
 	private readonly perHour: Record<DemoBucket, number>;
@@ -29,7 +26,6 @@ export class DemoLimitService {
 		this.dailyCap = config.getOrThrow<number>('DEMO_DAILY_CAP');
 	}
 
-	// null means counted and let through, otherwise the limit that stopped it
 	take(bucket: DemoBucket, ip: string): 'hourly' | 'daily' | null {
 		const now = Date.now();
 		this.sweep(now);
@@ -43,7 +39,6 @@ export class DemoLimitService {
 			this.day = today;
 			this.usedToday = 0;
 		}
-		// refused requests are not counted, otherwise one flooding address would eat the daily budget
 		if (this.usedToday >= this.dailyCap) return 'daily';
 
 		recent.push(now);

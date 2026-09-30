@@ -5,7 +5,6 @@ export type Chunk = {
 	charEnd: number;
 };
 
-// without a tokenizer any token count is guesswork, so characters it is
 const MAX_CHARS = 3000;
 const OVERLAP_CHARS = 450;
 const MIN_CHARS = 120;
@@ -37,7 +36,6 @@ export function chunk(text: string): Chunk[] {
 		.flatMap((range) => split(text, range))
 		.map((range, idx) => ({
 			idx,
-			// never trim, or the offsets stop pointing at the original text
 			content: text.slice(range.start, range.end),
 			charStart: range.start,
 			charEnd: range.end
@@ -60,7 +58,6 @@ function paragraphs(text: string): { start: number; end: number }[] {
 	return blocks.filter((block) => text.slice(block.start, block.end).trim().length > 0);
 }
 
-// paragraphs can run longer than MAX_CHARS
 function split(text: string, range: { start: number; end: number }) {
 	if (range.end - range.start <= MAX_CHARS) return [range];
 
@@ -95,7 +92,6 @@ function wordEnd(text: string, from: number, limit: number): number {
 	return limit;
 }
 
-// back to the next word boundary so the overlap does not start mid-word
 function backtrack(text: string, from: number, distance: number): number {
 	const target = Math.max(0, from - distance);
 

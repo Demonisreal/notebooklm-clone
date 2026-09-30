@@ -1,2 +1,1 @@
-# minimal generated pdfs look like text to git, crlf conversion breaks their xref offsets
 *.pdf binary

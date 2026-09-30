@@ -11,7 +11,6 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY packages/shared packages/shared
 COPY apps/web apps/web
 
-# next backt NEXT_PUBLIC_* zur bauzeit ein, deshalb muessen sie hier schon stehen
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 ARG NEXT_PUBLIC_API_URL

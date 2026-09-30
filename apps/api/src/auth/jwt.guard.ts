@@ -36,8 +36,6 @@ export class JwtGuard implements CanActivate {
 	) {
 		this.issuer = config.getOrThrow<string>('SUPABASE_JWT_ISSUER');
 
-		// the token names the public address, but the keys are fetched internally -
-		// behind a proxy the container cannot reach itself otherwise
 		const base = config.getOrThrow<string>('SUPABASE_URL');
 		this.jwks = createRemoteJWKSet(new URL(`${base}/auth/v1/.well-known/jwks.json`));
 	}

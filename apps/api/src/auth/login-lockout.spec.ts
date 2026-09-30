@@ -7,7 +7,6 @@ const KEY = process.env.SUPABASE_SECRET_KEY ?? '';
 const PASSWORD = 'correct horse battery';
 const WRONG = 'wrong horse battery';
 
-// the lock is a gotrue hook in the database, so it is checked through gotrue itself
 describe.skipIf(!KEY)('login lockout hook', () => {
 	let admin: SupabaseClient;
 	const created: string[] = [];

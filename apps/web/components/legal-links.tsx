@@ -5,7 +5,6 @@ const LINKS = [
 	{ label: 'Privacy', href: 'https://dmn-software.com/en/datenschutz.html' }
 ];
 
-// new tab, so a half filled form or an open notebook survives a quick look
 export function LegalLinks({ className }: { className?: string }) {
 	return (
 		<p className={cn('text-xs text-[var(--color-faint)]', className)}>
