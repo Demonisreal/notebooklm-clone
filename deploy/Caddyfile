@@ -6,7 +6,6 @@
 	reverse_proxy web:3000
 	encode zstd gzip
 
-	# the csp comes from apps/web/proxy.ts, it needs a fresh nonce per request
 	header {
 		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options "nosniff"
@@ -19,12 +18,10 @@
 
 {$API_DOMAIN} {
 	reverse_proxy api:3001 {
-		# sse must not be buffered, otherwise the answer arrives in stutters
 		flush_interval -1
 	}
 	encode zstd gzip
 
-	# json and sse only, nothing here may render or be framed
 	header {
 		Content-Security-Policy "default-src 'none'; frame-ancestors 'none'"
 		Strict-Transport-Security "max-age=31536000"
@@ -40,11 +37,9 @@
 	reverse_proxy kong:8000
 	encode zstd gzip
 
-	# the studio is not meant to be public
 	@studio path /studio* /project*
 	respond @studio 404
 
-	# the browser only talks to auth, realtime and signed storage urls, data goes through the api
 	@direct {
 		path /rest/v1* /graphql/v1* /storage/v1*
 		not path /storage/v1/object/sign/* /storage/v1/object/upload/sign/*

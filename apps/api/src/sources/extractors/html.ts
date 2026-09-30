@@ -5,7 +5,6 @@ import { Extracted, UnsupportedSourceError } from './extractor';
 export type Article = Extracted & { title: string | null };
 
 export function extractHtml(html: string, url: string): Article {
-	// readability needs a real document, an html parser on its own will not do
 	const dom = new JSDOM(html, { url });
 	const article = new Readability(dom.window.document).parse();
 
@@ -16,7 +15,6 @@ export function extractHtml(html: string, url: string): Article {
 		);
 	}
 
-	// readability takes the title from <title> only, which is often missing or useless
 	const heading = dom.window.document.querySelector('h1')?.textContent?.trim();
 	const title = article?.title?.trim() || heading || null;
 

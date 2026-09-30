@@ -49,7 +49,6 @@ describe('extractHtml', () => {
 });
 
 describe('pageForOffset', () => {
-	// page 1 from 0, page 2 from 100, page 3 from 250
 	const starts = [0, 100, 250];
 
 	it('maps offsets to the right page', () => {

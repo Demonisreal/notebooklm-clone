@@ -16,9 +16,6 @@ import type { AuthUser } from './jwt.guard';
 export const DEMO_LIMIT = 'demoLimit';
 export const DemoLimit = (bucket: DemoBucket) => SetMetadata(DEMO_LIMIT, bucket);
 
-// Caddy reaches the api over the docker network, so only private peers may set
-// X-Forwarded-For. Caddy replaces the header instead of appending to it, and even if it
-// appended, express takes the rightmost untrusted entry, never the client-controlled first one.
 export const TRUSTED_PROXIES = 'loopback, uniquelocal';
 
 @Injectable()

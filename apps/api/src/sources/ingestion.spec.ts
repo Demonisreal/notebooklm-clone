@@ -9,7 +9,6 @@ type Row = {
 	metadata: { rawText?: string };
 };
 
-// only the branching in extract() gets checked here, not the database
 function extractOf(service: IngestionService) {
 	return (db: unknown, row: Row) =>
 		(

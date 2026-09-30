@@ -5,11 +5,7 @@ import { FakeProvider } from '../llm/fake.provider';
 const URL = process.env.SUPABASE_URL ?? 'http://127.0.0.1:54321';
 const KEY = process.env.SUPABASE_SECRET_KEY ?? '';
 
-// the search lives in the database, so that is where it gets checked.
-// without a configured supabase, skip instead of going red
 describe.skipIf(!KEY)('match_chunks', () => {
-	// skipIf only skips the tests, the body still runs - without a key
-	// createClient would take down the whole file during collection
 	let db: SupabaseClient;
 	const llm = new FakeProvider();
 
@@ -95,8 +91,6 @@ describe.skipIf(!KEY)('match_chunks', () => {
 		expect(hits.some((h) => h.content.includes('Zephyr-7'))).toBe(true);
 	});
 
-	// without hnsw.iterative_scan nothing would come back here: the index hands over
-	// ef_search candidates and the filter throws all of them away afterwards
 	it('returns hits when only the small source is selected', async () => {
 		const hits = await search('warranty', [smallSource], 10);
 		expect(hits.length).toBe(2);

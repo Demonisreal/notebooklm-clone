@@ -6,10 +6,8 @@ export type AnswerBlock =
 
 const BULLET = /^(\s*)(?:[*-]|(\d+)[.)])\s+(.*)$/;
 
-// the model writes a small slice of markdown: headings, bold and lists nested by indent
 export function parseAnswer(content: string): AnswerBlock[] {
 	const blocks: AnswerBlock[] = [];
-	// innermost list last
 	let open: { indent: number; list: AnswerList }[] = [];
 
 	for (const line of content.split('\n')) {
@@ -41,7 +39,6 @@ export function parseAnswer(content: string): AnswerBlock[] {
 			continue;
 		}
 
-		// gemini puts blank lines between items now and then, that is still one list
 		if (!line.trim()) continue;
 
 		open = [];

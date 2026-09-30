@@ -1,6 +1,5 @@
 export type Extracted = {
 	text: string;
-	// character offset each page starts at. empty for sources without pages
 	pageStarts: number[];
 };
 

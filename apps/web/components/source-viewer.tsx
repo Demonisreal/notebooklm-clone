@@ -33,9 +33,7 @@ export function SourceViewer({ sourceId, highlight, onClose }: Props) {
 		if (mark && pane.current) {
 			const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 			mark.scrollIntoView({
-				// a chunk can be taller than the panel, centered its start would sit above the fold
 				block: mark.offsetHeight < pane.current.clientHeight ? 'center' : 'start',
-				// freshly loaded text just jumps, only a jump within text already on screen glides
 				behavior: shown.current && !reduced ? 'smooth' : 'auto'
 			});
 		}
@@ -87,7 +85,6 @@ export function SourceViewer({ sourceId, highlight, onClose }: Props) {
 						{segments(source.kind === 'pdf' ? reflow(source.text) : source.text, highlight).map(
 							(segment, i) =>
 								segment.marked ? (
-									// a solid block of yellow over a whole chunk buries the text
 									<mark
 										key={i}
 										ref={marked}
@@ -106,7 +103,6 @@ export function SourceViewer({ sourceId, highlight, onClose }: Props) {
 	);
 }
 
-// the offsets point into exactly this text, because this is what got indexed
 function segments(text: string, highlight?: { charStart: number; charEnd: number } | null) {
 	if (!highlight) return [{ text, marked: false }];
 

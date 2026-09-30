@@ -63,7 +63,6 @@ export function ChatPanel({ notebookId, sourceIds, hasSources, onCite, onSaveNot
 					text += event.text;
 					setPartial(text);
 				}
-				// the stream carries raw text, the cleaned up version arrives here
 				if (event.type === 'citations') {
 					text = event.text;
 					citations = event.items;
@@ -254,10 +253,8 @@ function Bubble({
 	);
 	const blocks = renderAnswer(message.content, message.citations, onCite, cursor);
 
-	// a <ul> must not sit inside a <p>, hence div instead of p
 	return (
 		<div className="animate-rise group mb-8">
-			{/* before the first delta there is no block for the cursor to hang on */}
 			<div className="space-y-1.5 leading-[1.75]">{blocks.length > 0 ? blocks : cursor}</div>
 
 			{!pending && (
@@ -316,7 +313,6 @@ function renderInline(text: string, citations: Citation[], onCite: (c: Citation)
 	});
 }
 
-// tail is the streaming cursor, it goes at the very end of the text, however deep that is
 export function renderAnswer(
 	content: string,
 	citations: Citation[],

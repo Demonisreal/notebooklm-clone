@@ -1,4 +1,3 @@
-// vectors from a different model live in a different space
 import { createClient } from '@supabase/supabase-js';
 
 const SUPA = process.env.SUPABASE_URL ?? 'http://127.0.0.1:54321';

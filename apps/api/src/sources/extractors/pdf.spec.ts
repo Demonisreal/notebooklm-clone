@@ -29,7 +29,6 @@ describe('extractPdf', () => {
 	});
 
 	it('flags a scan without a text layer instead of returning empty text', async () => {
-		// valid pdf, but without text - that is what a scan looks like
 		const empty = Buffer.from(
 			'%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n' +
 				'2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n' +
