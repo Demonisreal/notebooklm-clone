@@ -1,7 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr';
 
-// @supabase/ssr always writes 400 days and ignores cookieOptions.maxAge, so the cookies are
-// written here. Every token refresh rewrites the cookie, a week without a visit ends the session.
 const MAX_AGE = 7 * 24 * 60 * 60;
 
 let client: ReturnType<typeof createBrowserClient> | null = null;
@@ -15,7 +13,6 @@ export function supabase() {
 		{
 			cookies: {
 				getAll() {
-					// only our own cookies, a foreign one with a stray % would make decodeURIComponent throw
 					return document.cookie
 						.split('; ')
 						.filter((pair) => pair.startsWith('sb-'))

@@ -48,7 +48,6 @@ export function SourcesPanel({ notebookId, selected, onToggle, onOpen, onReadyCo
 		void load();
 	}, [load]);
 
-	// without the publication and a select policy realtime drops the events silently
 	useEffect(() => {
 		const channel = supabase()
 			.channel(`sources-${notebookId}`)

@@ -22,7 +22,6 @@ export class DemoWriteGuard implements CanActivate {
 		private readonly reflector: Reflector,
 		config: ConfigService
 	) {
-		// without a demo account the guard never fires, nothing should differ locally
 		this.demoEmail = demoEmail(config);
 	}
 

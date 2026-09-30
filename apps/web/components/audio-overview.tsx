@@ -24,7 +24,6 @@ export function AudioOverview({ notebookId, hasSources }: Props) {
 		void load();
 	}, [load]);
 
-	// tts runs in the background, so keep asking until it is there
 	useEffect(() => {
 		if (overview?.status !== 'processing' && overview?.status !== 'pending') return;
 

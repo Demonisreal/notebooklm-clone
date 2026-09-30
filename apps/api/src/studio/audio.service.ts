@@ -80,7 +80,6 @@ export class AudioService {
 
 		if (error) throw new InternalServerErrorException(error.message);
 
-		// tts takes up to a minute depending on length, the status lives in the db
 		void this.run(user, notebookId, (data as Row).id);
 		return this.toOverview(user, data as Row);
 	}
@@ -173,7 +172,6 @@ export class AudioService {
 	}
 }
 
-// models like to push an intro or code fences in front
 export function clean(raw: string): string {
 	return raw
 		.replace(/```[a-z]*\n?/gi, '')

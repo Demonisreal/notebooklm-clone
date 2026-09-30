@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { reflow } from './reflow';
 
-// excerpt of what unpdf pulls out of the demo contract, one line per pdf line
 const contract = [
 	'Framework Agreement Zephyr-7',
 	'Framework agreement on the supply and maintenance',

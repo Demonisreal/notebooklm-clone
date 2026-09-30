@@ -35,7 +35,6 @@ export class ChatService {
 		signal: AbortSignal
 	): AsyncIterable<ChatStreamEvent> {
 		const db = this.supabase.forUser(user.token);
-		// every visitor shares the demo account, a stored question would be readable by the next one
 		const demo = isDemo(user, this.demoEmail);
 
 		const conversationId = demo
@@ -61,7 +60,6 @@ export class ChatService {
 			return;
 		}
 
-		// save nothing on abort, otherwise half an answer sits in the history
 		if (signal.aborted) return;
 
 		const { text, citations } = resolveCitations(raw, blocks);

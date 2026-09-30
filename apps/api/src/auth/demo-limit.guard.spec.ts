@@ -75,7 +75,6 @@ describe('DemoLimitGuard', () => {
 		expect(status(() => limits.canActivate(context(routes.generate, DEMO, '198.51.100.4')))).toBe(
 			'passed'
 		);
-		// chat has a budget of its own
 		expect(status(() => limits.canActivate(context(routes.ask, DEMO, '203.0.113.7')))).toBe(
 			'passed'
 		);
@@ -87,7 +86,6 @@ describe('DemoLimitGuard', () => {
 	});
 
 	it('stops every address once the daily cap is used up, until midnight in Berlin', () => {
-		// 23:50 in Berlin
 		vi.setSystemTime(new Date('2026-09-15T21:50:00Z'));
 		const limits = guard({ DEMO_DAILY_CAP: 3 });
 		for (const ip of ['10.0.0.1', '10.0.0.2', '10.0.0.3']) {

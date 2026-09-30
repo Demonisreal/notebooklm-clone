@@ -20,7 +20,6 @@
 		"declaration": false,
 		"sourceMap": true,
 		"incremental": true,
-		// gehoert in outDir, sonst ueberlebt der cache ein deleteOutDir und der build wird still leer
 		"tsBuildInfoFile": "./dist/.tsbuildinfo"
 	},
 	"include": ["src/**/*"],

@@ -5,7 +5,6 @@ import { LLM_PROVIDER, LlmProvider } from '../llm/llm.provider';
 import { NotesService } from '../notes/notes.service';
 import { SupabaseService } from '../supabase/supabase.service';
 
-// gemini flash handles far more, but long prompts cost time and quota
 const MAX_CONTEXT_CHARS = 24000;
 
 const INSTRUCTIONS: Record<Exclude<StudioKind, 'mindmap' | 'audio'>, string> = {
@@ -82,7 +81,6 @@ function labelFor(kind: Exclude<StudioKind, 'audio'>): string {
 	return 'Study guide';
 }
 
-// models like to wrap json in code fences or write text in front of it
 export function parseTree(raw: string): MindMapNode {
 	const start = raw.indexOf('{');
 	const end = raw.lastIndexOf('}');

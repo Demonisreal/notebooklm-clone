@@ -62,7 +62,6 @@ export class SourcesService {
 			throw new BadRequestException(`File type .${extension} is not supported`);
 		}
 
-		// first path segment is the user id, that is what the storage policy checks
 		const path = `${user.id}/${randomUUID()}.${extension}`;
 		const { data, error } = await this.supabase
 			.forUser(user.token)
@@ -102,7 +101,6 @@ export class SourcesService {
 
 		if (error) throw new InternalServerErrorException(error.message);
 
-		// without await on purpose: the client follows progress through the status
 		void this.ingestion.run((data as Row).id);
 		return toSource(data as Row);
 	}
