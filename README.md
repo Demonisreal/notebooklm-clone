@@ -157,7 +157,7 @@ DEMO_PASSWORD=secret pnpm seed:demo
 ## Tests
 
 ```bash
-pnpm test     # 91 tests, 102 with Supabase running
+pnpm test     # 91 tests, 102 with Supabase running and SUPABASE_SECRET_KEY exported
 ```
 
 No coverage theatre, but tests where logic can be **silently** wrong:
@@ -167,6 +167,7 @@ No coverage theatre, but tests where logic can be **silently** wrong:
 | `chunker.spec.ts`          | The invariant `extracted_text.slice(charStart, charEnd) === content` — including overlong paragraphs and text without spaces. If it breaks, every citation points off target without anything crashing                 |
 | `citations.spec.ts`        | Invented citation numbers are removed, grouped ones like `[1, 2]` are split, the rest renumbered without gaps; the indent of nested list items survives the cleanup                                                    |
 | `match-chunks.spec.ts`     | Search against the real database, including the case that would come back empty without `iterative_scan`                                                                                                               |
+| `login-lockout.spec.ts`    | Runs through GoTrue itself: five misses lock an account even against the right password, parallel guesses are counted one by one, and the demo account is never locked                                                 |
 | `pdf.spec.ts`              | Page mapping across page boundaries; scans without a text layer are detected                                                                                                                                           |
 | `ingestion.spec.ts`        | Uploaded text files against pasted text — two paths, the same kind of source                                                                                                                                           |
 | `html.spec.ts`             | Navigation and footer are dropped instead of landing in every chunk                                                                                                                                                    |
@@ -179,7 +180,7 @@ No coverage theatre, but tests where logic can be **silently** wrong:
 | `reflow.spec.ts`           | PDF lines are only joined where the page layout wrapped them, headings and list items keep their line, and no character moves, so the citation offsets still hit                                                       |
 | `chat-panel.spec.tsx`      | The streaming cursor sits at the end of the text, inside the last entry of the deepest list instead of below it, and citations in nested items stay buttons                                                            |
 
-`match-chunks.spec.ts` and `login-lockout.spec.ts` skip themselves when no Supabase is configured. The latter goes through GoTrue itself: five misses lock an account even against the right password, parallel guesses are counted one by one, and the demo account is never locked.
+`match-chunks.spec.ts` and `login-lockout.spec.ts` skip themselves unless `SUPABASE_SECRET_KEY` is set in the shell, vitest does not read `apps/api/.env`.
 
 ## Deployment
 
