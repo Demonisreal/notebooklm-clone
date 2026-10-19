@@ -201,4 +201,4 @@ The **token issuer differs by deployment mode**: self-hosted GoTrue writes the b
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+All rights reserved, see [LICENSE](LICENSE). The repository is there to be read; use, copying, modification and distribution only with written permission.
